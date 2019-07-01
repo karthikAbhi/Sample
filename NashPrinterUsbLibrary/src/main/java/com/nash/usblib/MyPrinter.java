@@ -24,6 +24,7 @@ import com.askjeffreyliu.floydsteinbergdithering.Utils;
 import com.nash.nashprintercommands.Command;
 
 import java.io.UnsupportedEncodingException;
+import java.security.InvalidParameterException;
 import java.util.HashMap;
 import java.util.Iterator;
 
@@ -36,6 +37,8 @@ public class MyPrinter {
     Command myCommand = new Command();
     //Command Validator
     Validator mValidator = new Validator();
+    //Cut Command Enum
+    CutCommand mCutCommand = CutCommand.FULLCUT;
 
     String ACTION_USB_PERMISSION = "com.android.example.USB_PERMISSION";
 
@@ -319,8 +322,8 @@ public class MyPrinter {
         }
     }
     //Select character code table (14.10) (With Parameter)
-    public void ESC_T(byte[] n){
-        transfer(myCommand.ESC_T);
+    public void ESC_t(byte[] n){
+        transfer(myCommand.ESC_t);
         transfer(n);
     }
     //Specify download character (14.11) (With Parameter)
@@ -418,9 +421,9 @@ public class MyPrinter {
 
     }
     //Print raster bit image (14.24) (With Parameter)
-    public void GS_V(Bitmap bmp, String n){
+    public void GS_v(Bitmap bmp, String n){
         if(mValidator.check(n, 0, 3)){
-            transfer(myCommand.GS_V);
+            transfer(myCommand.GS_v);
             transfer(convertString2ByteArray(n));
             transfer(Utils_1.decodeRasterBitImage(Utils.floydSteinbergDithering(bmp)));
         }
@@ -513,7 +516,7 @@ public class MyPrinter {
     }
     //Print Barcode (14.33) (With Parameter)
     public void GS_K(){
-        transfer(myCommand.GS_K);
+        transfer(myCommand.GS_k);
     }
     //Initialize the printer (14.34)
     public void ESC_INIT(){
@@ -551,6 +554,100 @@ public class MyPrinter {
         if(mValidator.check(n, 0, 255)){
             transfer(myCommand.GS_d);
             transfer(convertString2ByteArray(n));
+        }
+    }
+    //Turn Underline button ON/OFF (14.70)
+    public void ESC_hyphen(String n){
+        if(mValidator.check(n,0,2)){
+            transfer(myCommand.ESC_hyphen);
+            transfer(convertString2ByteArray(n));
+        }
+    }
+    //Select default line spacing (14.71)
+    public void ESC_2(){
+        transfer(myCommand.ESC_2);
+    }
+    //Turn emphasized mode on/off (14.72)
+    public void ESC_E(String n){
+        if(mValidator.check(n, 0,255)){
+            transfer(myCommand.ESC_E);
+            transfer(convertString2ByteArray(n));
+        }
+    }
+    //Select print direction in page mode (14.73)
+    public void ESC_T(String n){
+        if(mValidator.check(n, 0,3)){
+            transfer(myCommand.ESC_T);
+            transfer(convertString2ByteArray(n));
+        }
+    }
+    //Select justification (14.74)
+    public void ESC_a(String n){
+        if(mValidator.check(n, 0,2)){
+            transfer(myCommand.ESC_a);
+            transfer(convertString2ByteArray(n));
+        }
+    }
+    //Print downloaded bit image (14.77)
+    public void GS_FS(String n){
+        if(mValidator.check(n, 0,3)){
+            transfer(myCommand.GS_FS);
+            transfer(convertString2ByteArray(n));
+        }
+    }
+    //Turn white/black reverse print mode on/off (14.78)
+    public void GS_B(String n){
+        if(mValidator.check(n, 0,255)){
+            transfer(myCommand.GS_B);
+            transfer(convertString2ByteArray(n));
+        }
+    }
+    //Select cut mode and cut paper (14.79)
+    public void GS_V(FunctionType functionType, CutCommand mode, String n){
+        if(functionType.equals(FunctionType.C)){
+            if(mode == CutCommand.FULLCUT){
+                if(mValidator.check(n, 0,255)){
+                    transfer(myCommand.GS_V);
+                    transfer(new byte[]{0x61});
+                    transfer(convertString2ByteArray(n));
+                }
+            }
+            else if(mode == CutCommand.PARTIALCUT){
+                if(mValidator.check(n, 0,255)){
+                    transfer(myCommand.GS_V);
+                    transfer(new byte[]{0x62});
+                    transfer(convertString2ByteArray(n));
+                }
+            }
+        }
+        else if(functionType.equals(FunctionType.B)){
+            if(mode == CutCommand.FULLCUT){
+                if(mValidator.check(n, 0,255)){
+                    transfer(myCommand.GS_V);
+                    transfer(new byte[]{0x41});
+                    transfer(convertString2ByteArray(n));
+                }
+            }
+            else if(mode == CutCommand.PARTIALCUT){
+                if(mValidator.check(n, 0,255)){
+                    transfer(myCommand.GS_V);
+                    transfer(new byte[]{0x42});
+                    transfer(convertString2ByteArray(n));
+                }
+            }
+        }
+        else if(functionType.equals(FunctionType.A)){
+            if(mode == CutCommand.FULLCUT){
+                transfer(myCommand.GS_V);
+                transfer(new byte[]{0x30});
+            }
+            else if(mode == CutCommand.PARTIALCUT){
+                    transfer(myCommand.GS_V);
+                    transfer(new byte[]{0x31});
+            }
+        }
+        else{
+            throw new InvalidParameterException();
         }
     }
 
