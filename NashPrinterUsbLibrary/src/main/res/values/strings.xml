@@ -1,0 +1,4 @@
+<resources>
+    <string name="app_name">UsbLib</string>
+    <string name="VID">12232</string>
+</resources>

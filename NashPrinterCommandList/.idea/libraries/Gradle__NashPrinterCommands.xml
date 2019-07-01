@@ -1,0 +1,9 @@
+<component name="libraryTable">
+  <library name="Gradle: NashPrinterCommands">
+    <CLASSES>
+      <root url="jar://$PROJECT_DIR$/libs/NashPrinterCommands.jar!/" />
+    </CLASSES>
+    <JAVADOC />
+    <SOURCES />
+  </library>
+</component>
