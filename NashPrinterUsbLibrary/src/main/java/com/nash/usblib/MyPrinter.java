@@ -515,8 +515,19 @@ public class MyPrinter {
         }
     }
     //Print Barcode (14.33) (With Parameter)
-    public void GS_K(){
-        transfer(myCommand.GS_k);
+    public void GS_k(BarcodeType barcodeType, String barcodeData) {
+        try {
+            if (mValidator.check_barcode(barcodeType, barcodeData)) {
+                transfer(myCommand.GS_k);
+                transfer(convertString2ByteArray(Integer.toString(barcodeType.getBarcode_type())));
+                transfer(convertString2ByteArray(String.valueOf(barcodeData.length())));
+                transfer(barcodeData);
+            } else {
+                throw new ValueOutOfBoundException("Invalid Input :" + barcodeData);
+            }
+        } catch(Exception e){
+            e.printStackTrace();
+        }
     }
     //Initialize the printer (14.34)
     public void ESC_INIT(){

@@ -25,6 +25,7 @@ import com.google.zxing.common.BitMatrix;
 import com.journeyapps.barcodescanner.BarcodeEncoder;
 
 //Nash - USB library package for Android
+import com.nash.usblib.BarcodeType;
 import com.nash.usblib.CutCommand;
 import com.nash.usblib.FunctionType;
 import com.nash.usblib.MyPrinter;
@@ -284,6 +285,8 @@ public class MainActivity extends AppCompatActivity {
         mSetBarcodeWidthCommandButton = findViewById(R.id.setBarcodeWidthButton);
         //Set N:W aspect of the barcode (14.32)
         mSetNWAspectBarcode = findViewById(R.id.setNWAspectOfBarcodeButton);
+        //Print Barcode (14.33)
+        mPrintBarcodeButton = findViewById(R.id.printBarcodeButton);
         //Initialize Printer Command
         mInitializePrinterCommandButton = findViewById(R.id.initializePrinterButton);
         //Set print density (14.40)
@@ -589,7 +592,17 @@ public class MainActivity extends AppCompatActivity {
         mPrintBarcodeButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                printBarcode();
+                //printBarcode();
+                //printer.GS_k(BarcodeType.UPC_A, "72527273070");
+                //printer.GS_k(BarcodeType.UPC_E, "01150000066");
+                //printer.GS_k(BarcodeType.JAN13, "122245678931");
+                //printer.GS_k(BarcodeType.JAN8, "1245678");
+                //printer.GS_k(BarcodeType.CODE39, "1AE% ");
+                printer.GS_k(BarcodeType.ITF, "1456");
+                //printer.GS_k(BarcodeType.CODABAR, "A12345A");
+                //printer.GS_k(BarcodeType.CODE93, "A12345A");
+
+
             }
         });
 
