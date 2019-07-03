@@ -13,8 +13,6 @@ import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
-import android.widget.RadioButton;
-import android.widget.RadioGroup;
 import android.widget.Toast;
 
 //Barcode Related
@@ -25,12 +23,10 @@ import com.google.zxing.common.BitMatrix;
 import com.journeyapps.barcodescanner.BarcodeEncoder;
 
 //Nash - USB library package for Android
-import com.nash.usblib.BarcodeType;
-import com.nash.usblib.CutCommand;
-import com.nash.usblib.FunctionType;
 import com.nash.usblib.MyPrinter;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Calendar;
 
 public class MainActivity extends AppCompatActivity {
@@ -85,20 +81,6 @@ public class MainActivity extends AppCompatActivity {
     private Button mPrintNVBitImageCommandButton;
     private Button mSelectNVBitImageCommandButton;
     private Button mDefineNVBitImageCommandButton;
-    private Button mtUOnOffCommandButton;
-    private Button mSDLSCommandButton;
-    private Button mTEMOnOffCommandButton;
-    private Button mSPDPMCommandButton;
-    private Button mSJCommandButton;
-    private Button mPDBICommandButton;
-    private Button mTurnWBRPOnOffCommandButton;
-    private Button mSCMCPCommandButton;
-
-    private RadioGroup mRadioGroupFT;
-    private RadioButton mRadioButtonFT;
-    private RadioGroup mRadioGroupCT;
-    private RadioButton mRadioButtonCT;
-
     //Control Transfer
     private Button mControlTransfer;
 
@@ -140,13 +122,6 @@ public class MainActivity extends AppCompatActivity {
     private EditText mSpecifyResponseParameterEditText;
     private EditText mInformSysTimeOfHostEditText;
     private EditText mFFIPIXELSEditText;
-    private EditText mUnderLineEditText;
-    private EditText mTEMOnOffEditText;
-    private EditText mSPDPMEditText;
-    private EditText mSJEditText;
-    private EditText mPDBIEditText;
-    private EditText mTurnWBRPOnOffEditText;
-    private EditText mSCMCPEditText;
 
     //TODO Control Transfer
     private EditText mControlTransferEditText;
@@ -198,14 +173,6 @@ public class MainActivity extends AppCompatActivity {
         mSetNWAspectBarcodeEditText = findViewById(R.id.setNWAspectOfBarcodeEditText);
         mSetPrintDensityEditText = findViewById(R.id.setPrintDensityEditText);
         mFFIPIXELSEditText = findViewById(R.id.ffinPixelsEditText);
-        mUnderLineEditText = findViewById(R.id.underLineEditText);
-        mTEMOnOffEditText = findViewById(R.id.turnEmphasizedOnOffEditText);
-        mSPDPMEditText = findViewById(R.id.selectPrintDirInPageModeEditText);
-        mSJEditText = findViewById(R.id.selectJustificationEditText);
-        mPDBIEditText = findViewById(R.id.printDownldBitImgEditText);
-        mTurnWBRPOnOffEditText = findViewById(R.id.turnBlackWhiteRevPrintModeOnOffEditText);
-        mSCMCPEditText = findViewById(R.id.selectCutModeCutPaperEditText);
-
         //TODO Control Transfer
         mControlTransferEditText = findViewById(R.id.controlTransferEditText);
 
@@ -285,8 +252,6 @@ public class MainActivity extends AppCompatActivity {
         mSetBarcodeWidthCommandButton = findViewById(R.id.setBarcodeWidthButton);
         //Set N:W aspect of the barcode (14.32)
         mSetNWAspectBarcode = findViewById(R.id.setNWAspectOfBarcodeButton);
-        //Print Barcode (14.33)
-        mPrintBarcodeButton = findViewById(R.id.printBarcodeButton);
         //Initialize Printer Command
         mInitializePrinterCommandButton = findViewById(R.id.initializePrinterButton);
         //Set print density (14.40)
@@ -299,27 +264,6 @@ public class MainActivity extends AppCompatActivity {
         mInformSysTimeOfHostCommandButton = findViewById(R.id.infoSysTimeHostButton);
         //Feed form in pixels Command (14.54)
         mFFIPIXELSCommandButton = findViewById(R.id.ffinPixelsButton);
-        //Turn Underline button ON/OFF (14.70)
-        mtUOnOffCommandButton = findViewById(R.id.underLineButton);
-        //Select default line spacing (14.71)
-        mSDLSCommandButton = findViewById(R.id.setDefaultLineSpaceButton);
-        //Turn emphasized mode on/off (14.72)
-        mTEMOnOffCommandButton = findViewById(R.id.turnEmphasizedOnOffButton);
-        //Select print direction in page mode (14.73)
-        mSPDPMCommandButton = findViewById(R.id.selectPrintDirInPageModeButton);
-        //Select justification (14.74)
-        mSJCommandButton = findViewById(R.id.selectJustificationButton);
-        //Print downloaded bit image (14.77)
-        mPDBICommandButton = findViewById(R.id.printDownldBitImgButton);
-        //Turn white/black reverse print mode on/off (14.78)
-        mTurnWBRPOnOffCommandButton = findViewById(R.id.turnBlackWhiteRevPrintModeOnOffButton);
-        //Select cut mode and cut paper (14.79)
-        mRadioGroupFT = findViewById(R.id.radioGroup_FunctionType);
-        mRadioGroupCT = findViewById(R.id.radioGroup_CutType);
-        mRadioButtonFT = findViewById(R.id.FT_a);
-        mRadioButtonCT = findViewById(R.id.full_cut);
-        mSCMCPCommandButton =findViewById(R.id.selectCutModeCutPaperButton);
-
         //Control Transfer
         mControlTransfer = findViewById(R.id.controlTransferButton);
 
@@ -396,7 +340,7 @@ public class MainActivity extends AppCompatActivity {
             public void onClick(View v) {
                 byte[] a = new byte[1];
                 a[0] = (byte)0;//Default - 0
-                printer.ESC_t(a);
+                printer.ESC_T(a);
             }
         });
         //TODO - Need to talk to Reddy sir
@@ -592,17 +536,7 @@ public class MainActivity extends AppCompatActivity {
         mPrintBarcodeButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                //printBarcode();
-                //printer.GS_k(BarcodeType.UPC_A, "72527273070");
-                //printer.GS_k(BarcodeType.UPC_E, "01150000066");
-                //printer.GS_k(BarcodeType.JAN13, "122245678931");
-                //printer.GS_k(BarcodeType.JAN8, "1245678");
-                //printer.GS_k(BarcodeType.CODE39, "1AE% ");
-                printer.GS_k(BarcodeType.ITF, "1456");
-                //printer.GS_k(BarcodeType.CODABAR, "A12345A");
-                //printer.GS_k(BarcodeType.CODE93, "A12345A");
-
-
+                printBarcode();
             }
         });
 
@@ -665,87 +599,6 @@ public class MainActivity extends AppCompatActivity {
                 printer.GS_d(mFFIPIXELSEditText.getText().toString());
             }
         });
-
-        //Turn Underline button ON/OFF (14.70)
-        mtUOnOffCommandButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                printer.ESC_hyphen(mUnderLineEditText.getText().toString());
-            }
-        });
-
-        //Select default line spacing (14.71)
-        mSDLSCommandButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                printer.ESC_2();
-            }
-        });
-
-        //Turn emphasized mode on/off (14.72)
-        mTEMOnOffCommandButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                printer.ESC_E(mTEMOnOffEditText.getText().toString());
-            }
-        });
-
-        //Select print direction in page mode (14.73)
-        mSPDPMCommandButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                printer.ESC_T(mSPDPMCommandButton.getText().toString());
-            }
-        });
-
-        //Select justification (14.74)
-        mSJCommandButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                printer.ESC_a(mSJEditText.getText().toString());
-            }
-        });
-
-        //Print downloaded bit image (14.77)
-        mPDBICommandButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                printer.GS_FS(mPDBIEditText.getText().toString());
-            }
-        });
-
-        //Turn white/black reverse print mode on/off (14.78)
-        mTurnWBRPOnOffCommandButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                printer.GS_B(mTurnWBRPOnOffEditText.getText().toString());
-            }
-        });
-
-        //Select cut mode and cut paper (14.79)
-        mSCMCPCommandButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                if(mRadioButtonCT.getText().toString().equals("Full Cut")){
-                    if(mRadioButtonFT.getText().toString().equals("A")){
-                        printer.GS_V(FunctionType.A, CutCommand.FULLCUT, mSCMCPEditText.getText().toString());
-                    }else if(mRadioButtonFT.getText().toString().equals("B")){
-                        printer.GS_V(FunctionType.B, CutCommand.FULLCUT, mSCMCPEditText.getText().toString());
-                    }else if(mRadioButtonFT.getText().toString().equals("C")){
-                        printer.GS_V(FunctionType.C, CutCommand.FULLCUT, mSCMCPEditText.getText().toString());
-                    }
-                }else if(mRadioButtonCT.getText().toString().equals("Partial Cut")){
-                    if(mRadioButtonFT.getText().toString().equals("A")){
-                        printer.GS_V(FunctionType.A, CutCommand.PARTIALCUT, mSCMCPEditText.getText().toString());
-                    }else if(mRadioButtonFT.getText().toString().equals("B")){
-                        printer.GS_V(FunctionType.B, CutCommand.PARTIALCUT, mSCMCPEditText.getText().toString());
-                    }else if(mRadioButtonFT.getText().toString().equals("C")){
-                        printer.GS_V(FunctionType.C, CutCommand.PARTIALCUT, mSCMCPEditText.getText().toString());
-                    }
-                }
-            }
-        });
-
 
         //Basic Print Command
         mPrintButton.setOnClickListener(new View.OnClickListener() {
@@ -820,7 +673,7 @@ public class MainActivity extends AppCompatActivity {
             if(extras != null){
                 //Get Image from Gallery
                 Bitmap bmp = extras.getParcelable("data");
-                printer.GS_v(bmp, mModeOfRasterBitEditText.getText().toString());
+                printer.GS_V(bmp, mModeOfRasterBitEditText.getText().toString());
             }
         }
         //NV Bit Image Selection
@@ -882,32 +735,10 @@ public class MainActivity extends AppCompatActivity {
             Bitmap bitmap = barcodeEncoder.createBitmap(bitMatrix);
             byte[] a = new byte[1];
             a[0] = (byte)0;// 0 <= m <=3
-            printer.GS_v(bitmap, "1");//TODO - Set default to 1
+            printer.GS_V(bitmap, "1");//TODO - Set default to 1
         } catch (WriterException e){
             Log.e("Barcode Encoding Error:",e.getMessage());
         }
-    }
-
-    /**
-     * Callback method for Radiogroup - Function Type
-     * @param view - Radiobutton selected
-     */
-    public void RadioButtonFuncTypeSelected(View view){
-        int radioButtonId = mRadioGroupFT.getCheckedRadioButtonId();
-        mRadioButtonFT = findViewById(radioButtonId);
-
-        Toast.makeText(this, "Mode: "+ mRadioButtonFT.getText(), Toast.LENGTH_SHORT).show();
-    }
-
-    /**
-     * Callback method for Radiogroup - Cut Type
-     * @param view
-     */
-    public void RadioButtonCutTypeSelected(View view){
-        int radioButtonId = mRadioGroupCT.getCheckedRadioButtonId();
-        mRadioButtonCT = findViewById(radioButtonId);
-
-        Toast.makeText(this, "Mode: "+ mRadioButtonCT.getText(), Toast.LENGTH_SHORT).show();
     }
 }
 
