@@ -60,6 +60,7 @@ public class Command {
     public byte[] ESC_E = {0x1b, 0x45};  //Turn emphasized mode on/off (14.72)
     public byte[] ESC_T = {0x1b, 0x54};  //Select print direction in page mode (14.73)
     public byte[] ESC_a = {0x1b, 0x61};  //Select justification (14.74)
+    public byte[] GS_C_k = {0x1d, 0x28, 0x6b};  //Set up and print the symbol (14.75)
     public byte[] GS_FS = {0x1d, 0x2f};  //Print downloaded bit image (14.77)
     public byte[] GS_B = {0x1d, 0x42};   //Turn white/black reverse print mode on/off (14.78)
     public byte[] GS_V = {0x1d, 0x56};   //Select cut mode and cut paper (14.79)

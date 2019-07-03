@@ -1,6 +1,5 @@
 package com.nash.usblib;
 
-import android.service.autofill.RegexValidator;
 import android.util.Log;
 
 import java.util.regex.Pattern;

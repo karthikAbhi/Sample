@@ -693,7 +693,87 @@
             android:layout_height="wrap_content"
             android:layout_marginStart="8dp"
             android:layout_marginEnd="8dp"
-            android:text="Select Justification " />
+            android:text="Select Justification" />
+
+        <LinearLayout
+            android:layout_height="wrap_content"
+            android:layout_width="match_parent"
+            android:background="@drawable/customborder"
+            android:orientation="vertical"
+            android:layout_margin="10dp">
+
+            <RadioGroup
+                android:id="@+id/radioGroup_QRType"
+                android:layout_height="wrap_content"
+                android:layout_width="match_parent"
+                android:orientation="horizontal"
+                android:layout_weight="1"
+                android:layout_gravity="center">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Correction Level:"
+                    android:textSize="20sp"
+                    android:layout_gravity="left"/>
+
+
+                <RadioButton
+                    android:id="@+id/qr_L"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="L"
+                    android:onClick="RadioButtonQRTypeSelected"
+                    android:checked="true"
+                    />
+                <RadioButton
+                    android:id="@+id/qr_M"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="M"
+                    android:onClick="RadioButtonQRTypeSelected"/>
+                <RadioButton
+                    android:id="@+id/qr_Q"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Q"
+                    android:onClick="RadioButtonQRTypeSelected"/>
+                <RadioButton
+                    android:id="@+id/qr_H"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="H"
+                    android:onClick="RadioButtonQRTypeSelected"/>
+            </RadioGroup>
+
+            <EditText
+                android:id="@+id/qrSizeEditText"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:gravity="center"
+                android:numeric="integer"
+                android:text="0"
+                android:hint="(QR Size) Enter value between 0 - 255"
+                android:layout_weight="2"/>
+
+            <EditText
+                android:id="@+id/qrUserDataEditText"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:gravity="center"
+                android:hint="(QR Data) Enter the QR data"
+                android:layout_weight="3"/>
+
+            <Button
+                android:id="@+id/qrCodeButton"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="8dp"
+                android:layout_marginEnd="8dp"
+                android:text="Print QR Code"
+                android:layout_gravity="center"
+                android:layout_weight="4"/>
+        </LinearLayout>
 
         <EditText
             android:id="@+id/printDownldBitImgEditText"
@@ -732,7 +812,8 @@
             android:layout_height="wrap_content"
             android:layout_width="wrap_content"
             android:background="@drawable/customborder"
-            android:orientation="vertical">
+            android:orientation="vertical"
+            android:layout_margin="10dp">
 
             <RadioGroup
                 android:id="@+id/radioGroup_FunctionType"
@@ -745,7 +826,6 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="Function Type: "
-                    android:textAllCaps="true"
                     android:textSize="20sp"
                     android:layout_marginLeft="10dp"/>
 
@@ -782,7 +862,6 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="Cut Type: "
-                    android:textAllCaps="true"
                     android:textSize="20sp"
                     android:layout_marginLeft="10dp"/>
 

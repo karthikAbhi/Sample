@@ -20,11 +20,21 @@ import android.hardware.usb.UsbManager;
 import android.util.Log;
 import android.widget.Toast;
 
+//Barcode Related
+import com.google.zxing.BarcodeFormat;
+import com.google.zxing.MultiFormatWriter;
+import com.google.zxing.WriterException;
+import com.google.zxing.common.BitMatrix;
+
 import com.askjeffreyliu.floydsteinbergdithering.Utils;
+import com.journeyapps.barcodescanner.BarcodeEncoder;
 import com.nash.nashprintercommands.Command;
 
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.security.InvalidParameterException;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
 
@@ -33,6 +43,7 @@ import static android.hardware.usb.UsbManager.ACTION_USB_DEVICE_DETACHED;
 
 public class MyPrinter {
 
+    private static final String TAG = "MyPrinter";
     //Nash Printer Command Reference
     Command myCommand = new Command();
     //Command Validator
@@ -283,42 +294,42 @@ public class MyPrinter {
     public void ESC_J(String n){
         if(mValidator.check(n, 0 , 255)){
             transfer(myCommand.ESC_J);
-            transfer(convertString2ByteArray(n));
+            transfer(convertStringToByteArray(n));
         }
     }
     //Print data and feed n lines (14.05) (With Parameter)
     public void ESC_D(String n){
         if(mValidator.check(n, 0, 255)){
             transfer(myCommand.ESC_D);
-            transfer(convertString2ByteArray(n));
+            transfer(convertStringToByteArray(n));
         }
     }
     //Set the line feed amount (14.06) (With Parameter)
     public void ESC_3(String n){
         if(mValidator.check(n, 0, 255)){
             transfer(myCommand.ESC_3);
-            transfer(convertString2ByteArray(n));
+            transfer(convertStringToByteArray(n));
         }
     }
     //Set the gap of right side of the character (14.07) (With Parameter)
     public void ESC_SP(String n){
         if(mValidator.check(n, 0, 255)){
             transfer(myCommand.ESC_SP);
-            transfer(convertString2ByteArray(n));
+            transfer(convertStringToByteArray(n));
         }
     }
     //Set parameter of print mode (14.08) (With Parameter)
     public void ESC_PM(String n){
         if(mValidator.check(n, 0, 255)){
             transfer(myCommand.ESC_PM);
-            transfer(convertString2ByteArray(n));
+            transfer(convertStringToByteArray(n));
         }
     }
     //Select the font (14.09) (With Parameter)
     public void ESC_M(String n){
         if(mValidator.check(n,0,1)){
             transfer(myCommand.ESC_M);
-            transfer(convertString2ByteArray(n));
+            transfer(convertStringToByteArray(n));
         }
     }
     //Select character code table (14.10) (With Parameter)
@@ -334,7 +345,7 @@ public class MyPrinter {
     public void ESC_SDC(String n){
         if(mValidator.check(n, 0, 255)){
             transfer(myCommand.ESC_SDC);
-            transfer(convertString2ByteArray(n));
+            transfer(convertStringToByteArray(n));
         }
     }
     //Set the print mode to page mode (14.13)
@@ -353,14 +364,14 @@ public class MyPrinter {
     public void GS_L(String n){
         if(mValidator.check(n, 0, 576)){
             transfer(myCommand.GS_L);
-            transfer(convertString2TwoByteArray(n));
+            transfer(convertStringToTwoByteArray(n));
         }
     }
     //Set the width of print area (14.17) (With Parameter)
     public void GS_W(String n){
         if(mValidator.check(n, 0, 576)){
             transfer(myCommand.GS_W);
-            transfer(convertString2TwoByteArray(n));
+            transfer(convertStringToTwoByteArray(n));
         }
     }
     //Specify the print area on page mode (14.18) (With Parameter)
@@ -372,10 +383,10 @@ public class MyPrinter {
                 && mValidator.check(yLength, 0, 576)){
 
             transfer(myCommand.ESC_W);
-            transfer(convertString2TwoByteArray(x));
-            transfer(convertString2TwoByteArray(y));
-            transfer(convertString2TwoByteArray(xLength));
-            transfer(convertString2TwoByteArray(yLength));
+            transfer(convertStringToTwoByteArray(x));
+            transfer(convertStringToTwoByteArray(y));
+            transfer(convertStringToTwoByteArray(xLength));
+            transfer(convertStringToTwoByteArray(yLength));
 
         }
 
@@ -384,28 +395,28 @@ public class MyPrinter {
     public void ESC_PP(String n){
         if(mValidator.check(n, 0, 576)){
             transfer(myCommand.ESC_PP);
-            transfer(convertString2TwoByteArray(n));
+            transfer(convertStringToTwoByteArray(n));
         }
     }
     //Set the logical position (14.20) (With Parameter)
     public void ESC_LP(String n){
         if(mValidator.check(n, 0, 576)){
             transfer(myCommand.ESC_LP);
-            transfer(convertString2TwoByteArray(n));
+            transfer(convertStringToTwoByteArray(n));
         }
     }
     //Set the vertical physical position in page mode (14.21) (With Parameter)
     public void GS_VPP(String n){
         if(mValidator.check(n, 0, 576)){
             transfer(myCommand.GS_VPP);
-            transfer(convertString2TwoByteArray(n));
+            transfer(convertStringToTwoByteArray(n));
         }
     }
     //Set the vertical logical position on page mode (14.22) (With Parameter)
     public void GS_VLP(String n){
         if(mValidator.check(n, 0, 576)){
             transfer(myCommand.GS_VLP);
-            transfer(convertString2TwoByteArray(n));
+            transfer(convertStringToTwoByteArray(n));
         }
     }
     //Print bit image (14.23) (With Parameter)
@@ -424,7 +435,7 @@ public class MyPrinter {
     public void GS_v(Bitmap bmp, String n){
         if(mValidator.check(n, 0, 3)){
             transfer(myCommand.GS_v);
-            transfer(convertString2ByteArray(n));
+            transfer(convertStringToByteArray(n));
             transfer(Utils_1.decodeRasterBitImage(Utils.floydSteinbergDithering(bmp)));
         }
     }
@@ -433,8 +444,8 @@ public class MyPrinter {
         if(mValidator.check(select, 1, 255)
                 && mValidator.check(mode, 0, 3)){
             transfer(myCommand.FS_P);
-            transfer(convertString2ByteArray(select));
-            transfer(convertString2ByteArray(mode));
+            transfer(convertStringToByteArray(select));
+            transfer(convertStringToByteArray(mode));
         }
     }
     //Select NV Bit Image (14.25) (With Parameter)
@@ -444,9 +455,9 @@ public class MyPrinter {
                 && mValidator.check(offset, 0, 255)){
 
             transfer(myCommand.FS_P);
-            transfer(convertString2ByteArray(select));
-            transfer(convertString2ByteArray(mode));
-            transfer(convertString2ByteArray(offset));
+            transfer(convertStringToByteArray(select));
+            transfer(convertStringToByteArray(mode));
+            transfer(convertStringToByteArray(offset));
         }
     }
 
@@ -459,7 +470,7 @@ public class MyPrinter {
             if(bmp.length == Integer.parseInt(n)){
                 if(mValidator.check(n, 1, 255)){
                     transfer(myCommand.FS_Q);
-                    transfer(convertString2ByteArray(n));
+                    transfer(convertStringToByteArray(n));
                     //Transfer Image
                     for(int z = 0; z < Integer.parseInt(n); z++)
                         transfer(Utils_1.decodeNVBitImage(Utils.floydSteinbergDithering(
@@ -476,42 +487,42 @@ public class MyPrinter {
     public void DC2_DIR(String n){
         if(mValidator.check(n, 0, 255)){
             transfer(myCommand.DC2_DIR);
-            transfer(convertString2ByteArray(n));
+            transfer(convertStringToByteArray(n));
         }
     }
     //Set print position of HRI characters (14.28) (With Parameter)
     public void GS_H(String n){
         if(mValidator.check(n,0,3)){
             transfer(myCommand.GS_H);
-            transfer(convertString2ByteArray(n));
+            transfer(convertStringToByteArray(n));
         }
     }
     //Select HRI character size (14.29) (With Parameter)
     public void GS_F(String n){
         if(mValidator.check(n,0,1)){
             transfer(myCommand.GS_F);
-            transfer(convertString2ByteArray(n));
+            transfer(convertStringToByteArray(n));
         }
     }
     //Set barcode height (14.30) (With Parameter)
     public void GS_h(String n){
         if(mValidator.check(n,0,255)){
             transfer(myCommand.GS_h);
-            transfer(convertString2ByteArray(n));
+            transfer(convertStringToByteArray(n));
         }
     }
     //Set barcode width (14.31) (With Parameter)
     public void GS_w(String n){
         if(mValidator.check(n,2,6)){
             transfer(myCommand.GS_w);
-            transfer(convertString2ByteArray(n));
+            transfer(convertStringToByteArray(n));
         }
     }
     //Set N:W aspect of the barcode (14.32) (With Parameter)
     public void DC2_ARB(String n){
         if(mValidator.check(n,0,2)){
             transfer(myCommand.DC2_ARB);
-            transfer(convertString2ByteArray(n));
+            transfer(convertStringToByteArray(n));
         }
     }
     //Print Barcode (14.33) (With Parameter)
@@ -519,8 +530,8 @@ public class MyPrinter {
         try {
             if (mValidator.check_barcode(barcodeType, barcodeData)) {
                 transfer(myCommand.GS_k);
-                transfer(convertString2ByteArray(Integer.toString(barcodeType.getBarcode_type())));
-                transfer(convertString2ByteArray(String.valueOf(barcodeData.length())));
+                transfer(convertStringToByteArray(Integer.toString(barcodeType.getBarcode_type())));
+                transfer(convertStringToByteArray(String.valueOf(barcodeData.length())));
                 transfer(barcodeData);
             } else {
                 throw new ValueOutOfBoundException("Invalid Input :" + barcodeData);
@@ -537,7 +548,7 @@ public class MyPrinter {
     public void DC2_PD(String n){
         if(mValidator.check(n, 65, 135)){
             transfer(myCommand.DC2_PD);
-            transfer(convertString2ByteArray(n));
+            transfer(convertStringToByteArray(n));
         }
     }
     /*Cue the marked form(feed the form to print start position)
@@ -564,14 +575,14 @@ public class MyPrinter {
     public void GS_d(String n){
         if(mValidator.check(n, 0, 255)){
             transfer(myCommand.GS_d);
-            transfer(convertString2ByteArray(n));
+            transfer(convertStringToByteArray(n));
         }
     }
     //Turn Underline button ON/OFF (14.70)
     public void ESC_hyphen(String n){
         if(mValidator.check(n,0,2)){
             transfer(myCommand.ESC_hyphen);
-            transfer(convertString2ByteArray(n));
+            transfer(convertStringToByteArray(n));
         }
     }
     //Select default line spacing (14.71)
@@ -582,35 +593,83 @@ public class MyPrinter {
     public void ESC_E(String n){
         if(mValidator.check(n, 0,255)){
             transfer(myCommand.ESC_E);
-            transfer(convertString2ByteArray(n));
+            transfer(convertStringToByteArray(n));
         }
     }
     //Select print direction in page mode (14.73)
     public void ESC_T(String n){
         if(mValidator.check(n, 0,3)){
             transfer(myCommand.ESC_T);
-            transfer(convertString2ByteArray(n));
+            transfer(convertStringToByteArray(n));
         }
     }
     //Select justification (14.74)
     public void ESC_a(String n){
         if(mValidator.check(n, 0,2)){
             transfer(myCommand.ESC_a);
-            transfer(convertString2ByteArray(n));
+            transfer(convertStringToByteArray(n));
         }
     }
+    //Set up and print the symbol (14.75) PART - 1
+    public void pdf417() {
+        transfer(myCommand.GS_C_k);
+        //TODO: Need to implement in firmware
+    }
+    //Set up and print the symbol (14.75) PART - 2
+    public void QrCode(String size, QRErrCorrLvl qrErrCorrLvl, String userData) {
+        try{
+            if(userData == null || userData.equals("")|| size.equals("0")){
+                Log.i(TAG,"String empty or Size is zero");
+                throw new InvalidParameterException("Check the parameters provided.");
+            }
+            else {
+
+                ByteArrayOutputStream out = new ByteArrayOutputStream();
+
+                //Set the size of module
+                out.write(myCommand.GS_C_k);
+                out.write(new byte[]{0x03, 0x00, 0x31, 0x43});
+                out.write(convertStringToByteArray(size));
+
+                //Select the error correction level <Function 169>
+                out.write(myCommand.GS_C_k);
+                out.write(new byte[]{0x03, 0x00, 0x31, 0x45});
+                out.write(convertStringToByteArray(Integer.toString(qrErrCorrLvl.getCorrectionlevel())));
+
+                //Store the data in the symbol storage area <Function 180>
+                out.write(myCommand.GS_C_k);
+                out.write(convertStringToTwoByteArray(String.valueOf(userData.length() + 3)));
+                out.write(new byte[]{0x31, 0x50, 0x30});
+                out.write(userData.getBytes());
+
+                //Print the symbol data in the symbol storage area <Function 181>
+                out.write(myCommand.GS_C_k);
+                out.write(new byte[]{0x03, 0x00, 0x31, 0x51, 0x30});
+
+                transfer(out.toByteArray());
+
+                out.reset();
+                out.close();
+
+                //TODO: Remember sometimes individual byte transfer may not work properly so use the above method
+            }
+        }catch (Exception e){
+            e.printStackTrace();
+        }
+    }
+
     //Print downloaded bit image (14.77)
     public void GS_FS(String n){
         if(mValidator.check(n, 0,3)){
             transfer(myCommand.GS_FS);
-            transfer(convertString2ByteArray(n));
+            transfer(convertStringToByteArray(n));
         }
     }
     //Turn white/black reverse print mode on/off (14.78)
     public void GS_B(String n){
         if(mValidator.check(n, 0,255)){
             transfer(myCommand.GS_B);
-            transfer(convertString2ByteArray(n));
+            transfer(convertStringToByteArray(n));
         }
     }
     //Select cut mode and cut paper (14.79)
@@ -620,14 +679,14 @@ public class MyPrinter {
                 if(mValidator.check(n, 0,255)){
                     transfer(myCommand.GS_V);
                     transfer(new byte[]{0x61});
-                    transfer(convertString2ByteArray(n));
+                    transfer(convertStringToByteArray(n));
                 }
             }
             else if(mode == CutCommand.PARTIALCUT){
                 if(mValidator.check(n, 0,255)){
                     transfer(myCommand.GS_V);
                     transfer(new byte[]{0x62});
-                    transfer(convertString2ByteArray(n));
+                    transfer(convertStringToByteArray(n));
                 }
             }
         }
@@ -636,14 +695,14 @@ public class MyPrinter {
                 if(mValidator.check(n, 0,255)){
                     transfer(myCommand.GS_V);
                     transfer(new byte[]{0x41});
-                    transfer(convertString2ByteArray(n));
+                    transfer(convertStringToByteArray(n));
                 }
             }
             else if(mode == CutCommand.PARTIALCUT){
                 if(mValidator.check(n, 0,255)){
                     transfer(myCommand.GS_V);
                     transfer(new byte[]{0x42});
-                    transfer(convertString2ByteArray(n));
+                    transfer(convertStringToByteArray(n));
                 }
             }
         }
@@ -705,12 +764,12 @@ public class MyPrinter {
      * Note: tmp = 0 (Default)
      */
     /*** Merge these methods later ***/
-    public byte[] convertString2ByteArray(String n){
+    public byte[] convertStringToByteArray(String n){
         byte[] tmp = new byte[1];
         tmp[0] = (byte) Integer.parseInt(n);
         return tmp;
     }
-    public byte[] convertString2TwoByteArray(String n){
+    public byte[] convertStringToTwoByteArray(String n){
         byte[] tmp = new byte[2];//nL and nH
         int temp = Integer.parseInt(n);
         tmp[0] = (byte) (temp % 256);
@@ -767,6 +826,37 @@ public class MyPrinter {
             default:
                 Log.e("Error","Invalid Control Request");
                 return buff;
+        }
+    }
+
+    /**
+     * TODO - Example Barcode Method from zxing library
+     */
+    public void printAdditionalBarcode(ExtraBarcodeType extraBarcodeType, String width, String height, String userData,
+                             ImageMode imageMode){
+        //TODO: Width and Height parameters needs to be constrainted.
+        MultiFormatWriter mMultiFormatWriter = new MultiFormatWriter();
+
+        BitMatrix bitMatrix = null;
+        try {
+            if(extraBarcodeType.getExtraBarcodeType().equals("0")){
+                bitMatrix = mMultiFormatWriter.encode(userData,
+                        BarcodeFormat.PDF_417, Integer.parseInt(width), Integer.parseInt(height));
+            }
+            else if(extraBarcodeType.getExtraBarcodeType().equals("1")){
+                bitMatrix = mMultiFormatWriter.encode(userData,
+                        BarcodeFormat.CODE_128, Integer.parseInt(width), Integer.parseInt(height));
+            }else{
+                throw new InvalidParameterException("Invalid Barcode type selected");
+            }
+
+            BarcodeEncoder barcodeEncoder = new BarcodeEncoder();
+            Bitmap bitmap = barcodeEncoder.createBitmap(bitMatrix);
+
+            this.GS_v(bitmap, imageMode.getMode());//TODO - Set default to 1
+
+        } catch (Exception e){
+            Log.e("Barcode Error:",e.getMessage());
         }
     }
 }

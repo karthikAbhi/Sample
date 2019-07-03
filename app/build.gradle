@@ -27,6 +27,4 @@ dependencies {
     androidTestImplementation 'com.android.support.test.espresso:espresso-core:3.0.2'
     implementation project(':NashPrinterUsbLibrary')
     implementation 'com.github.jeffreyliu8:Native-Floyd-Steinberg-Dithering:0.0.5'
-    implementation 'com.google.zxing:core:3.2.1'
-    implementation 'com.journeyapps:zxing-android-embedded:3.2.0@aar'
 }

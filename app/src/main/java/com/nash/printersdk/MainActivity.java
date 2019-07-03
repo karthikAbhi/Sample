@@ -17,25 +17,19 @@ import android.widget.RadioButton;
 import android.widget.RadioGroup;
 import android.widget.Toast;
 
-//Barcode Related
-import com.google.zxing.BarcodeFormat;
-import com.google.zxing.MultiFormatWriter;
-import com.google.zxing.WriterException;
-import com.google.zxing.common.BitMatrix;
-import com.journeyapps.barcodescanner.BarcodeEncoder;
-
 //Nash - USB library package for Android
 import com.nash.usblib.BarcodeType;
 import com.nash.usblib.CutCommand;
+import com.nash.usblib.ExtraBarcodeType;
 import com.nash.usblib.FunctionType;
+import com.nash.usblib.ImageMode;
 import com.nash.usblib.MyPrinter;
+import com.nash.usblib.QRErrCorrLvl;
 
 import java.io.IOException;
 import java.util.Calendar;
 
 public class MainActivity extends AppCompatActivity {
-
-    private static final int REQUEST_IMAGE_CAPTURE = 1;
 
     private MyPrinter printer;
     private Context context;
@@ -90,9 +84,13 @@ public class MainActivity extends AppCompatActivity {
     private Button mTEMOnOffCommandButton;
     private Button mSPDPMCommandButton;
     private Button mSJCommandButton;
+    private Button mQRCodeCommandButton;
     private Button mPDBICommandButton;
     private Button mTurnWBRPOnOffCommandButton;
     private Button mSCMCPCommandButton;
+
+    private RadioGroup mRadioGroupQR;
+    private RadioButton mRadioButtonQR;
 
     private RadioGroup mRadioGroupFT;
     private RadioButton mRadioButtonFT;
@@ -144,6 +142,7 @@ public class MainActivity extends AppCompatActivity {
     private EditText mTEMOnOffEditText;
     private EditText mSPDPMEditText;
     private EditText mSJEditText;
+    private EditText mQRSizeEditText, mQRUserDataEditText;
     private EditText mPDBIEditText;
     private EditText mTurnWBRPOnOffEditText;
     private EditText mSCMCPEditText;
@@ -202,6 +201,8 @@ public class MainActivity extends AppCompatActivity {
         mTEMOnOffEditText = findViewById(R.id.turnEmphasizedOnOffEditText);
         mSPDPMEditText = findViewById(R.id.selectPrintDirInPageModeEditText);
         mSJEditText = findViewById(R.id.selectJustificationEditText);
+        mQRSizeEditText = findViewById(R.id.qrSizeEditText);
+        mQRUserDataEditText = findViewById(R.id.qrUserDataEditText);
         mPDBIEditText = findViewById(R.id.printDownldBitImgEditText);
         mTurnWBRPOnOffEditText = findViewById(R.id.turnBlackWhiteRevPrintModeOnOffEditText);
         mSCMCPEditText = findViewById(R.id.selectCutModeCutPaperEditText);
@@ -309,6 +310,10 @@ public class MainActivity extends AppCompatActivity {
         mSPDPMCommandButton = findViewById(R.id.selectPrintDirInPageModeButton);
         //Select justification (14.74)
         mSJCommandButton = findViewById(R.id.selectJustificationButton);
+        //Print QR Code (14.75) Part - 2
+        mRadioGroupQR = findViewById(R.id.radioGroup_QRType);
+        mRadioButtonQR = findViewById(R.id.qr_L);
+        mQRCodeCommandButton = findViewById(R.id.qrCodeButton);
         //Print downloaded bit image (14.77)
         mPDBICommandButton = findViewById(R.id.printDownldBitImgButton);
         //Turn white/black reverse print mode on/off (14.78)
@@ -706,6 +711,32 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
+        //Set up and print the symbol (14.75)
+
+        //Print QR Code (14.75) Part - 2
+        mQRCodeCommandButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if(mRadioButtonQR.getText().toString().equals("L")){
+                    printer.QrCode( mQRSizeEditText.getText().toString(), QRErrCorrLvl.L,
+                            mQRUserDataEditText.getText().toString());
+                }
+                else if(mRadioButtonQR.getText().toString().equals("M")){
+                    printer.QrCode( mQRSizeEditText.getText().toString(), QRErrCorrLvl.M,
+                            mQRUserDataEditText.getText().toString());
+                }
+                else if(mRadioButtonQR.getText().toString().equals("Q")){
+                    printer.QrCode( mQRSizeEditText.getText().toString(), QRErrCorrLvl.Q,
+                            mQRUserDataEditText.getText().toString());
+                }
+                else if(mRadioButtonQR.getText().toString().equals("H")){
+                    printer.QrCode( mQRSizeEditText.getText().toString(), QRErrCorrLvl.H,
+                            mQRUserDataEditText.getText().toString());
+                }
+            }
+        });
+
+
         //Print downloaded bit image (14.77)
         mPDBICommandButton.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -752,6 +783,8 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 printer.printText(mSampleTextEditText.getText().toString());
+                printer.printAdditionalBarcode(ExtraBarcodeType.PDF417, "500", "300",
+                        "Hello", ImageMode.DOUBLE_WIDTH_DOUBLE_HEIGHT);
             }
         });
 
@@ -868,27 +901,6 @@ public class MainActivity extends AppCompatActivity {
     }
 
     /**
-     * TODO - Example Barcode Method from zxing library
-     */
-    public void printBarcode(){
-
-        MultiFormatWriter mMultiFormatWriter = new MultiFormatWriter();
-
-        BitMatrix bitMatrix = null;
-        try {
-            bitMatrix = mMultiFormatWriter.encode("A123456A",
-                    BarcodeFormat.CODABAR,500,200);
-            BarcodeEncoder barcodeEncoder = new BarcodeEncoder();
-            Bitmap bitmap = barcodeEncoder.createBitmap(bitMatrix);
-            byte[] a = new byte[1];
-            a[0] = (byte)0;// 0 <= m <=3
-            printer.GS_v(bitmap, "1");//TODO - Set default to 1
-        } catch (WriterException e){
-            Log.e("Barcode Encoding Error:",e.getMessage());
-        }
-    }
-
-    /**
      * Callback method for Radiogroup - Function Type
      * @param view - Radiobutton selected
      */
@@ -896,7 +908,7 @@ public class MainActivity extends AppCompatActivity {
         int radioButtonId = mRadioGroupFT.getCheckedRadioButtonId();
         mRadioButtonFT = findViewById(radioButtonId);
 
-        Toast.makeText(this, "Mode: "+ mRadioButtonFT.getText(), Toast.LENGTH_SHORT).show();
+        Toast.makeText(this, "Function Mode: "+ mRadioButtonFT.getText(), Toast.LENGTH_SHORT).show();
     }
 
     /**
@@ -907,7 +919,18 @@ public class MainActivity extends AppCompatActivity {
         int radioButtonId = mRadioGroupCT.getCheckedRadioButtonId();
         mRadioButtonCT = findViewById(radioButtonId);
 
-        Toast.makeText(this, "Mode: "+ mRadioButtonCT.getText(), Toast.LENGTH_SHORT).show();
+        Toast.makeText(this, "Cut Mode: "+ mRadioButtonCT.getText(), Toast.LENGTH_SHORT).show();
+    }
+
+    /**
+     * Callback method for Radiogroup - QR Correction Type
+     * @param view
+     */
+    public void RadioButtonQRTypeSelected(View view){
+        int radioButtonId = mRadioGroupQR.getCheckedRadioButtonId();
+        mRadioButtonQR = findViewById(radioButtonId);
+
+        Toast.makeText(this, "QR Correction Level: "+ mRadioButtonQR.getText(), Toast.LENGTH_SHORT).show();
     }
 }
 
