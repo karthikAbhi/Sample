@@ -24,6 +24,9 @@ import com.nash.usblib.ExtraBarcodeType;
 import com.nash.usblib.FunctionType;
 import com.nash.usblib.ImageMode;
 import com.nash.usblib.MyPrinter;
+import com.nash.usblib.PDF417ErrorCorrectionLevel;
+import com.nash.usblib.PDF417ErrorCorrectionMode;
+import com.nash.usblib.PDF417Options;
 import com.nash.usblib.QRErrCorrLvl;
 
 import java.io.IOException;
@@ -783,8 +786,19 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 printer.printText(mSampleTextEditText.getText().toString());
-                printer.printAdditionalBarcode(ExtraBarcodeType.PDF417, "500", "300",
-                        "Hello", ImageMode.DOUBLE_WIDTH_DOUBLE_HEIGHT);
+                //printer.printAdditionalBarcode(ExtraBarcodeType.PDF417, "500", "300",
+                //        "Hello", ImageMode.DOUBLE_WIDTH_DOUBLE_HEIGHT);
+                //TODO: UI
+                /*printer.printPDF417("5","24",
+                        PDF417ErrorCorrectionMode.LEVEL,
+                        PDF417ErrorCorrectionLevel.LEVEL0,
+                        PDF417Options.STANDARD,
+                        "Hello there.. Karthik");*/
+
+                //printer.code93(BarcodeType.CODE93,"ABCDEFG");
+                printer.code128(BarcodeType.CODE128,"0905");
+
+
             }
         });
 

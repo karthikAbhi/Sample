@@ -23,7 +23,6 @@ import android.widget.Toast;
 //Barcode Related
 import com.google.zxing.BarcodeFormat;
 import com.google.zxing.MultiFormatWriter;
-import com.google.zxing.WriterException;
 import com.google.zxing.common.BitMatrix;
 
 import com.askjeffreyliu.floydsteinbergdithering.Utils;
@@ -31,10 +30,8 @@ import com.journeyapps.barcodescanner.BarcodeEncoder;
 import com.nash.nashprintercommands.Command;
 
 import java.io.ByteArrayOutputStream;
-import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.security.InvalidParameterException;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
 
@@ -52,6 +49,13 @@ public class MyPrinter {
     CutCommand mCutCommand = CutCommand.FULLCUT;
 
     String ACTION_USB_PERMISSION = "com.android.example.USB_PERMISSION";
+
+    //Barcode Related
+    final int SUBSETA = 0;
+    final int SUBSETB = 1;
+    final int SUBSETC = 2;
+
+    int nCurrentSubset = SUBSETA;
 
     //Android Components
     UsbManager mUsbManager;
@@ -858,5 +862,339 @@ public class MyPrinter {
         } catch (Exception e){
             Log.e("Barcode Error:",e.getMessage());
         }
+    }
+
+    public void  printPDF417(String No_of_Columns,
+                             String No_of_Rows,
+                             PDF417ErrorCorrectionMode mode,
+                             PDF417ErrorCorrectionLevel level,
+                             PDF417Options options,
+                             String userData){
+        try {
+            if((mValidator.check(No_of_Columns, 0, 30)) &&
+                    (mValidator.check(No_of_Rows, 3, 90)|| No_of_Rows.equals("0"))) {
+
+                ByteArrayOutputStream out = new ByteArrayOutputStream();
+
+                //Set the number of columns in the data region
+                out.write(myCommand.GS_C_k);
+                out.write(new byte[]{0x03, 0x00, 0x30, 0x41});
+                out.write(convertStringToByteArray(No_of_Columns));
+                //Set the number of rows
+                out.write(myCommand.GS_C_k);
+                out.write(new byte[]{0x03, 0x00, 0x30, 0x42});
+                out.write(convertStringToByteArray(No_of_Rows));
+                //Set the width of the module
+                out.write(myCommand.GS_C_k);
+                out.write(new byte[]{0x03, 0x00, 0x30, 0x43});
+                out.write(convertStringToByteArray(Integer.toString(3)));//TODO:Changes with Model
+                //Set the row height
+                out.write(myCommand.GS_C_k);
+                out.write(new byte[]{0x03, 0x00, 0x30, 0x44});
+                out.write(convertStringToByteArray(Integer.toString(3)));//TODO:Changes with Model
+                //Set the error correction level
+                out.write(myCommand.GS_C_k);
+                out.write(new byte[]{0x03, 0x00, 0x30, 0x45});
+                out.write(convertStringToByteArray(mode.getMode()));
+                out.write(convertStringToByteArray(level.getCorrectionLevel()));
+
+                //Select the options
+                out.write(myCommand.GS_C_k);
+                //out.write(convertStringToTwoByteArray(String.valueOf(userData.length() + 3)));
+                out.write(new byte[]{0x03, 0x00, 0x30, 0x46});
+                out.write(convertStringToByteArray(options.getOption()));
+
+                //Store the data in the symbol storage area
+                out.write(myCommand.GS_C_k);
+                out.write(convertStringToTwoByteArray(String.valueOf(userData.length() + 3)));//TODO:Check why?
+                out.write(new byte[]{0x30, 0x50, 0x30});
+                //Userdata
+                out.write(userData.getBytes());
+
+                //Print the symbol data in the symbol storage area
+                out.write(myCommand.GS_C_k);
+                out.write(new byte[]{0x03, 0x00, 0x30, 0x51, 0x30});
+
+                transfer(out.toByteArray());
+
+                out.reset();
+                out.close();
+            }
+        } catch (Exception e){
+            e.printStackTrace();
+        }
+    }
+    public void code93(BarcodeType barcodeType, String userData){
+        try{
+            ByteArrayOutputStream out = new ByteArrayOutputStream();
+
+            out.write(myCommand.GS_k);
+            out.write(barcodeType.getBarcode_type());
+            out.write(userData.length());
+
+            for (int nInputIdx = 0; nInputIdx < userData.length(); ++nInputIdx)
+            {
+                for (int nSearchIdx = 0; nSearchIdx < 128; nSearchIdx++)
+                {
+                    char ch = userData.charAt(nInputIdx);
+                    if (CODE93.code93model[nSearchIdx][0] == ch)
+                    {
+                        if ((CODE93.code93model[nSearchIdx][2]) == -1)
+                        {
+                            out.write(CODE93.code93model[nSearchIdx][1]);
+                        }
+                        else
+                        {
+                            out.write(CODE93.code93model[nSearchIdx][1]);
+                            out.write(CODE93.code93model[nSearchIdx][2]);
+                        }
+                        break;
+                    }
+                }
+            }
+            out.write(new byte[]{0x47});
+
+            transfer(out.toByteArray());
+            out.reset();
+            out.close();
+
+        } catch (Exception e){
+            e.printStackTrace();
+        }
+    }
+
+    public void code128(BarcodeType barcodeType, String userData) {
+
+        try {
+
+            ByteArrayOutputStream out = new ByteArrayOutputStream();
+
+            out.write(myCommand.GS_k);
+            out.write(barcodeType.getBarcode_type());
+            out.write(userData.length());
+
+            int chekDigit = checkDigit(userData);
+
+            if (nCurrentSubset == SUBSETA)
+                out.write(103);
+            if (nCurrentSubset == SUBSETB)
+                out.write(104);
+            if (nCurrentSubset == SUBSETC)
+                out.write(105);
+
+            for (int nInputIdx = 0; nInputIdx < userData.length(); nInputIdx++) {
+                int ch = userData.charAt(nInputIdx);
+                if (nCurrentSubset == SUBSETC) {
+                    if (CODE128.g_nASCIItoCode128SubsetAB[0][ch] == 101) {
+                        out.write(101);
+                        nCurrentSubset = SUBSETA;
+                    } else if (CODE128.g_nASCIItoCode128SubsetAB[0][ch] == 100) {
+                        out.write(100);
+                        nCurrentSubset = SUBSETB;
+                    } else if (CODE128.g_nASCIItoCode128SubsetAB[0][ch] == 102) {
+                        out.write(100);
+                    } else {
+
+                        int ipCode = Integer.parseInt(String.valueOf(ch) + userData.charAt(++nInputIdx));//atoi((const char *)codeC);
+                        out.write(CODE128.g_nASCIItoCode128SubsetAB[0][ipCode]);
+                    }
+                } else {
+                    // handle upper ASCII characters if necessary
+                    if (ch < -1)
+                        ch = ch & 255;
+
+                    ch = CODE128.g_nASCIItoCode128SubsetAB[nCurrentSubset][ch];
+                    out.write(ch);
+
+                    // if switch in SUBSETA
+                    if (nCurrentSubset == SUBSETA) {
+                        if (ch == 100)
+                            nCurrentSubset = SUBSETB;
+                        else if (ch == 99)
+                            nCurrentSubset = SUBSETC;
+                    }
+                    // if switch in SUBSETB
+                    else if (nCurrentSubset == SUBSETB) {
+                        if (ch == 101)
+                            nCurrentSubset = SUBSETA;
+                        else if (ch == 99)
+                            nCurrentSubset = SUBSETC;
+                    } else if (ch == 98) {
+                        ch = userData.charAt(++nInputIdx);
+                        if (nCurrentSubset == SUBSETA)
+                            out.write(CODE128.g_nASCIItoCode128SubsetAB[1][ch]);
+                        else
+                            out.write(CODE128.g_nASCIItoCode128SubsetAB[0][ch]);
+                    }
+                }
+            }
+            out.write(chekDigit);
+            out.write(106);
+
+            transfer(out.toByteArray());
+            out.reset();
+            out.close();
+
+        } catch (Exception e){
+            e.printStackTrace();
+        }
+    }
+
+    private int checkDigit(String userData){
+
+        int nSum = 0, nCode128Char, nNextChar, nWeight;
+        int nCharacterPosition;
+
+        // start character
+        if (nCurrentSubset == SUBSETA)
+        {
+            nSum = 103;
+            nCurrentSubset = SUBSETA;
+        }
+        else if (nCurrentSubset == SUBSETB)
+        {
+            nSum = 104;
+            nCurrentSubset = SUBSETB;
+        }
+        else if (nCurrentSubset == SUBSETC)
+        {
+            nSum = 105;
+            nCurrentSubset = SUBSETC;
+        }
+
+        // intialize the values
+        nCharacterPosition = 0;
+        nWeight = 1;
+
+        while (nCharacterPosition < userData.length())
+        {
+            // if SUBSETC
+            if (nCurrentSubset == SUBSETC)
+            {
+                // if it's a switch to SUBSETA - same character in all subsets
+                if (CODE128.g_nASCIItoCode128SubsetAB[SUBSETA][userData.charAt(nCharacterPosition)] == 101)
+                {
+                    // we're switching to subsetA
+                    nCode128Char = 101;
+
+                    // add the change subset character to the sum
+                    nSum += (nWeight*nCode128Char);
+
+                    // we've moved one message character
+                    nCharacterPosition++;
+
+                    // we've moved one weight value
+                    nWeight++;
+
+                    // actually change the subset
+                    nCurrentSubset = SUBSETA;
+                }
+                // if it's a switch to SUBSETB - same character in all subsets
+                else if (CODE128.g_nASCIItoCode128SubsetAB[SUBSETA][userData.charAt(nCharacterPosition)] == 100)
+                {
+                    // we're switching to subset B
+                    nCode128Char = 100;
+
+                    // add the change subset character to the sum
+                    nSum += (nWeight*nCode128Char);
+
+                    // we've moved one message character
+                    nCharacterPosition++;
+
+                    // we've moved one weight value
+                    nWeight++;
+
+                    // actually switch the subset
+                    nCurrentSubset = SUBSETB;
+                }
+                // it's FNC1 - just print it out
+                else if (CODE128.g_nASCIItoCode128SubsetAB[SUBSETA][userData.charAt(nCharacterPosition)] == 102)
+                {
+                    // we're switching to subset B
+                    nCode128Char = 102;
+
+                    // add the change subset character to the sum
+                    nSum += (nWeight*nCode128Char);
+
+                    // we've moved one message character
+                    nCharacterPosition++;
+
+                    // we've moved one weight value
+                    nWeight++;
+                }
+                // its a digit - process two at a time
+                else
+                {
+                    // convert them to longs
+                    nCode128Char = Integer.parseInt((userData.charAt(nCharacterPosition))+
+                            String.valueOf(userData.charAt(nCharacterPosition+1)));//atol((const char *)codeC);
+
+                    // add the weighted value
+                    nSum += (nWeight*nCode128Char);
+
+                    // we've moved two message characters
+                    nCharacterPosition += 2;
+
+                    // we've moved one weight value
+                    nWeight++;
+                }
+            }
+            // it's SUBSETA or SUBSETB
+            else
+            {
+                // handle upper ASCII characters if necessary
+                int nTemp2 = userData.charAt(nCharacterPosition);
+                if (nTemp2 < -1)
+                    nTemp2 = nTemp2 & 255;
+
+                // retrieve the message character
+                nCode128Char = CODE128.g_nASCIItoCode128SubsetAB[nCurrentSubset][nTemp2];
+
+                // add the weighted value to our sum
+                nSum += (nWeight*nCode128Char);
+
+                // we've moved one character position
+                nCharacterPosition++;
+
+                // we've moved one weight value
+                nWeight++;
+
+                // if switch in SUBSETA
+                if (nCurrentSubset == SUBSETA)
+                {
+                    if (nCode128Char == 100)
+                        nCurrentSubset = SUBSETB;
+                    else if (nCode128Char == 99)
+                        nCurrentSubset = SUBSETC;
+                }
+                // if switch in SUBSETB
+                else if (nCurrentSubset == SUBSETB)
+                {
+                    if (nCode128Char == 101)
+                        nCurrentSubset = SUBSETA;
+                    else if (nCode128Char == 99)
+                        nCurrentSubset = SUBSETC;
+                }
+                // handle single character switch
+                else if (nCode128Char == 98)
+                {
+                    // shift subsets for the next character only
+                    if (nCurrentSubset == SUBSETA)
+                        nNextChar = CODE128.g_nASCIItoCode128SubsetAB[SUBSETB][userData.charAt(nCharacterPosition)];
+                    else
+                        nNextChar = CODE128.g_nASCIItoCode128SubsetAB[SUBSETA][userData.charAt(nCharacterPosition)];
+
+                    // add weighted value to the sum
+                    nSum += (nWeight*nNextChar);
+
+                    // since we've handled two characters advance position and weight again
+                    nCharacterPosition++;
+                    nWeight++;
+                }
+            }
+        }
+
+        // return the modulus
+        return (nSum % 103);
     }
 }
