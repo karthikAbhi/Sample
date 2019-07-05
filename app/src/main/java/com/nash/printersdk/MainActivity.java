@@ -19,6 +19,7 @@ import android.widget.Toast;
 
 //Nash - USB library package for Android
 import com.nash.usblib.BarcodeType;
+import com.nash.usblib.CODE128Subset;
 import com.nash.usblib.CutCommand;
 import com.nash.usblib.ExtraBarcodeType;
 import com.nash.usblib.FunctionType;
@@ -785,9 +786,9 @@ public class MainActivity extends AppCompatActivity {
         mPrintButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                printer.printText(mSampleTextEditText.getText().toString());
-                //printer.printAdditionalBarcode(ExtraBarcodeType.PDF417, "500", "300",
-                //        "Hello", ImageMode.DOUBLE_WIDTH_DOUBLE_HEIGHT);
+                //printer.printText(mSampleTextEditText.getText().toString());
+                //printer.printAdditionalBarcode(ExtraBarcodeType.CODE128, "500", "300",
+                //       "0905", ImageMode.NORMAL);
                 //TODO: UI
                 /*printer.printPDF417("5","24",
                         PDF417ErrorCorrectionMode.LEVEL,
@@ -796,7 +797,8 @@ public class MainActivity extends AppCompatActivity {
                         "Hello there.. Karthik");*/
 
                 //printer.code93(BarcodeType.CODE93,"ABCDEFG");
-                printer.code128(BarcodeType.CODE128,"0905");
+                printer.code128(BarcodeType.CODE128,mSampleTextEditText.getText().toString(),
+                        CODE128Subset.SUBSETC);
 
 
             }

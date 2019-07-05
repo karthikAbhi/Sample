@@ -50,13 +50,6 @@ public class MyPrinter {
 
     String ACTION_USB_PERMISSION = "com.android.example.USB_PERMISSION";
 
-    //Barcode Related
-    final int SUBSETA = 0;
-    final int SUBSETB = 1;
-    final int SUBSETC = 2;
-
-    int nCurrentSubset = SUBSETA;
-
     //Android Components
     UsbManager mUsbManager;
     UsbDevice mDevice;
@@ -66,6 +59,7 @@ public class MyPrinter {
     String mUsbDevice = "";
     PendingIntent mPermissionIntent;
     Context mContext;
+    private int nCurrentSubset;
 
     //Constructor to find and initialise the printer connection
     public MyPrinter(Context context) {
@@ -963,7 +957,7 @@ public class MyPrinter {
         }
     }
 
-    public void code128(BarcodeType barcodeType, String userData) {
+    public void code128(BarcodeType barcodeType, String userData, CODE128Subset subset) {
 
         try {
 
@@ -971,26 +965,23 @@ public class MyPrinter {
 
             out.write(myCommand.GS_k);
             out.write(barcodeType.getBarcode_type());
-            out.write(userData.length());
+            out.write(userData.length()+2);
 
+            //nCurrentSubset = subset.getSubset();
             int chekDigit = checkDigit(userData);
+            //int nCurrentSubset = subset.getSubset();
 
-            if (nCurrentSubset == SUBSETA)
-                out.write(103);
-            if (nCurrentSubset == SUBSETB)
-                out.write(104);
-            if (nCurrentSubset == SUBSETC)
-                out.write(105);
+            out.write(nCurrentSubset);
 
-            for (int nInputIdx = 0; nInputIdx < userData.length(); nInputIdx++) {
+            for (int nInputIdx = 0; nInputIdx < userData.length(); ++nInputIdx) {
                 int ch = userData.charAt(nInputIdx);
-                if (nCurrentSubset == SUBSETC) {
+                if (nCurrentSubset == CODE128Subset.SUBSETC.getSubset()) {
                     if (CODE128.g_nASCIItoCode128SubsetAB[0][ch] == 101) {
                         out.write(101);
-                        nCurrentSubset = SUBSETA;
+                        nCurrentSubset = CODE128Subset.SUBSETA.getSubset();
                     } else if (CODE128.g_nASCIItoCode128SubsetAB[0][ch] == 100) {
                         out.write(100);
-                        nCurrentSubset = SUBSETB;
+                        nCurrentSubset = CODE128Subset.SUBSETB.getSubset();
                     } else if (CODE128.g_nASCIItoCode128SubsetAB[0][ch] == 102) {
                         out.write(100);
                     } else {
@@ -1003,37 +994,41 @@ public class MyPrinter {
                     if (ch < -1)
                         ch = ch & 255;
 
-                    ch = CODE128.g_nASCIItoCode128SubsetAB[nCurrentSubset][ch];
+                    ch = CODE128.g_nASCIItoCode128SubsetAB[nCurrentSubset%103][ch];
                     out.write(ch);
 
                     // if switch in SUBSETA
-                    if (nCurrentSubset == SUBSETA) {
+                    if (nCurrentSubset == CODE128Subset.SUBSETA.getSubset()) {
                         if (ch == 100)
-                            nCurrentSubset = SUBSETB;
+                            nCurrentSubset = CODE128Subset.SUBSETB.getSubset();
                         else if (ch == 99)
-                            nCurrentSubset = SUBSETC;
+                            nCurrentSubset = CODE128Subset.SUBSETC.getSubset();
                     }
                     // if switch in SUBSETB
-                    else if (nCurrentSubset == SUBSETB) {
+                    else if (nCurrentSubset == CODE128Subset.SUBSETB.getSubset()) {
                         if (ch == 101)
-                            nCurrentSubset = SUBSETA;
+                            nCurrentSubset = CODE128Subset.SUBSETA.getSubset();
                         else if (ch == 99)
-                            nCurrentSubset = SUBSETC;
+                            nCurrentSubset = CODE128Subset.SUBSETC.getSubset();
                     } else if (ch == 98) {
                         ch = userData.charAt(++nInputIdx);
-                        if (nCurrentSubset == SUBSETA)
+                        if (nCurrentSubset == CODE128Subset.SUBSETA.getSubset())
                             out.write(CODE128.g_nASCIItoCode128SubsetAB[1][ch]);
                         else
                             out.write(CODE128.g_nASCIItoCode128SubsetAB[0][ch]);
                     }
                 }
             }
-            out.write(chekDigit);
-            out.write(106);
+            //out.write(chekDigit);
+            out.write(nCurrentSubset);
 
             transfer(out.toByteArray());
             out.reset();
-            out.close();
+            out.flush();
+
+            //out.write(new byte[]{0x1d,0x6b,0x49,0x08,0x69,0x09,0x05,0x02,0x2e,0x49,0x61,0x68});
+            //transfer(out.toByteArray());
+            //out.close();
 
         } catch (Exception e){
             e.printStackTrace();
@@ -1046,20 +1041,20 @@ public class MyPrinter {
         int nCharacterPosition;
 
         // start character
-        if (nCurrentSubset == SUBSETA)
+        if (nCurrentSubset == CODE128Subset.SUBSETA.getSubset())
         {
             nSum = 103;
-            nCurrentSubset = SUBSETA;
+            nCurrentSubset = CODE128Subset.SUBSETA.getSubset();
         }
-        else if (nCurrentSubset == SUBSETB)
+        else if (nCurrentSubset == CODE128Subset.SUBSETB.getSubset())
         {
             nSum = 104;
-            nCurrentSubset = SUBSETB;
+            nCurrentSubset = CODE128Subset.SUBSETB.getSubset();
         }
-        else if (nCurrentSubset == SUBSETC)
+        else if (nCurrentSubset == CODE128Subset.SUBSETC.getSubset())
         {
             nSum = 105;
-            nCurrentSubset = SUBSETC;
+            nCurrentSubset = CODE128Subset.SUBSETC.getSubset();
         }
 
         // intialize the values
@@ -1069,10 +1064,10 @@ public class MyPrinter {
         while (nCharacterPosition < userData.length())
         {
             // if SUBSETC
-            if (nCurrentSubset == SUBSETC)
+            if (nCurrentSubset == CODE128Subset.SUBSETC.getSubset())
             {
                 // if it's a switch to SUBSETA - same character in all subsets
-                if (CODE128.g_nASCIItoCode128SubsetAB[SUBSETA][userData.charAt(nCharacterPosition)] == 101)
+                if (CODE128.g_nASCIItoCode128SubsetAB[CODE128Subset.SUBSETC.getSubset()][userData.charAt(nCharacterPosition)] == 101)
                 {
                     // we're switching to subsetA
                     nCode128Char = 101;
@@ -1087,10 +1082,10 @@ public class MyPrinter {
                     nWeight++;
 
                     // actually change the subset
-                    nCurrentSubset = SUBSETA;
+                    nCurrentSubset = CODE128Subset.SUBSETA.getSubset();
                 }
                 // if it's a switch to SUBSETB - same character in all subsets
-                else if (CODE128.g_nASCIItoCode128SubsetAB[SUBSETA][userData.charAt(nCharacterPosition)] == 100)
+                else if (CODE128.g_nASCIItoCode128SubsetAB[CODE128Subset.SUBSETA.getSubset()][userData.charAt(nCharacterPosition)] == 100)
                 {
                     // we're switching to subset B
                     nCode128Char = 100;
@@ -1105,10 +1100,10 @@ public class MyPrinter {
                     nWeight++;
 
                     // actually switch the subset
-                    nCurrentSubset = SUBSETB;
+                    nCurrentSubset = CODE128Subset.SUBSETB.getSubset();
                 }
                 // it's FNC1 - just print it out
-                else if (CODE128.g_nASCIItoCode128SubsetAB[SUBSETA][userData.charAt(nCharacterPosition)] == 102)
+                else if (CODE128.g_nASCIItoCode128SubsetAB[CODE128Subset.SUBSETA.getSubset()][userData.charAt(nCharacterPosition)] == 102)
                 {
                     // we're switching to subset B
                     nCode128Char = 102;
@@ -1160,29 +1155,29 @@ public class MyPrinter {
                 nWeight++;
 
                 // if switch in SUBSETA
-                if (nCurrentSubset == SUBSETA)
+                if (nCurrentSubset == CODE128Subset.SUBSETA.getSubset())
                 {
                     if (nCode128Char == 100)
-                        nCurrentSubset = SUBSETB;
+                        nCurrentSubset = CODE128Subset.SUBSETB.getSubset();
                     else if (nCode128Char == 99)
-                        nCurrentSubset = SUBSETC;
+                        nCurrentSubset = CODE128Subset.SUBSETC.getSubset();
                 }
                 // if switch in SUBSETB
-                else if (nCurrentSubset == SUBSETB)
+                else if (nCurrentSubset == CODE128Subset.SUBSETB.getSubset())
                 {
                     if (nCode128Char == 101)
-                        nCurrentSubset = SUBSETA;
+                        nCurrentSubset = CODE128Subset.SUBSETA.getSubset();
                     else if (nCode128Char == 99)
-                        nCurrentSubset = SUBSETC;
+                        nCurrentSubset = CODE128Subset.SUBSETC.getSubset();
                 }
                 // handle single character switch
                 else if (nCode128Char == 98)
                 {
                     // shift subsets for the next character only
-                    if (nCurrentSubset == SUBSETA)
-                        nNextChar = CODE128.g_nASCIItoCode128SubsetAB[SUBSETB][userData.charAt(nCharacterPosition)];
+                    if (nCurrentSubset == CODE128Subset.SUBSETA.getSubset())
+                        nNextChar = CODE128.g_nASCIItoCode128SubsetAB[CODE128Subset.SUBSETB.getSubset()][userData.charAt(nCharacterPosition)];
                     else
-                        nNextChar = CODE128.g_nASCIItoCode128SubsetAB[SUBSETA][userData.charAt(nCharacterPosition)];
+                        nNextChar = CODE128.g_nASCIItoCode128SubsetAB[CODE128Subset.SUBSETA.getSubset()][userData.charAt(nCharacterPosition)];
 
                     // add weighted value to the sum
                     nSum += (nWeight*nNextChar);
@@ -1193,7 +1188,6 @@ public class MyPrinter {
                 }
             }
         }
-
         // return the modulus
         return (nSum % 103);
     }
