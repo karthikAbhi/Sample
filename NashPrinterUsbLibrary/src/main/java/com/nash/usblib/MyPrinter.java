@@ -40,6 +40,8 @@ import static android.hardware.usb.UsbManager.ACTION_USB_DEVICE_DETACHED;
 
 public class MyPrinter {
 
+    private static MyPrinter myPrinter; // Singleton Design Pattern
+
     private static final String TAG = "MyPrinter";
     //Nash Printer Command Reference
     Command myCommand = new Command();
@@ -55,14 +57,23 @@ public class MyPrinter {
     UsbDevice mDevice;
     UsbInterface mInterface;
     UsbEndpoint mEndpoint;
-    UsbDeviceConnection mConnection;
+    private static UsbDeviceConnection mConnection;
     String mUsbDevice = "";
     PendingIntent mPermissionIntent;
     Context mContext;
     private int nCurrentSubset;
 
+    // Singleton Design Pattern continued...
+    public static MyPrinter getInstance(Context context){
+        if(myPrinter == null){
+            myPrinter = new MyPrinter(context);
+        }
+        return myPrinter;
+    }
+
+    // Singleton Design Pattern continued...
     //Constructor to find and initialise the printer connection
-    public MyPrinter(Context context) {
+    private MyPrinter(Context context) {
 
         mContext = context;
         mUsbManager = (UsbManager) context.getSystemService(Context.USB_SERVICE);
@@ -76,7 +87,7 @@ public class MyPrinter {
             mDevice = deviceIterator.next();
             if (mDevice.getVendorId() == 12232) {
                 //Device Found
-                Toast.makeText(context.getApplicationContext(), "Printer Connected" + mUsbDevice, Toast.LENGTH_SHORT).show();
+                Toast.makeText(context.getApplicationContext(), "Printer Connected!" + mUsbDevice, Toast.LENGTH_SHORT).show();
 
                 mPermissionIntent = PendingIntent.getBroadcast(context, 0, new Intent(ACTION_USB_PERMISSION), 0);
 
@@ -151,6 +162,7 @@ public class MyPrinter {
         @Override
         public void onReceive(Context context, Intent intent) {
             String action = intent.getAction();
+            // TODO: Check for the custom VID and PID for the USB here
             Toast.makeText(context.getApplicationContext(),"Device Disconnected!",
                     Toast.LENGTH_SHORT).show();
             mConnection.close();
@@ -162,6 +174,7 @@ public class MyPrinter {
         public void onReceive(Context context, Intent intent) {
             Toast.makeText(context.getApplicationContext(),"Device Connected!",
                     Toast.LENGTH_SHORT).show();
+            MyPrinter.getInstance(context);
         }
     };
 

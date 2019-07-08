@@ -1,5 +1,6 @@
 package com.nash.printersdk;
 
+import android.content.BroadcastReceiver;
 import android.content.ClipData;
 import android.content.Context;
 import android.content.Intent;
@@ -161,7 +162,7 @@ public class MainActivity extends AppCompatActivity {
 
         context = getApplicationContext();
 
-        printer = new MyPrinter(context);
+        printer = MyPrinter.getInstance(context);
 
         /***
          *
@@ -786,7 +787,7 @@ public class MainActivity extends AppCompatActivity {
         mPrintButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                //printer.printText(mSampleTextEditText.getText().toString());
+                printer.printText(mSampleTextEditText.getText().toString());
                 //printer.printAdditionalBarcode(ExtraBarcodeType.CODE128, "500", "300",
                 //       "0905", ImageMode.NORMAL);
                 //TODO: UI
@@ -797,8 +798,8 @@ public class MainActivity extends AppCompatActivity {
                         "Hello there.. Karthik");*/
 
                 //printer.code93(BarcodeType.CODE93,"ABCDEFG");
-                printer.code128(BarcodeType.CODE128,mSampleTextEditText.getText().toString(),
-                        CODE128Subset.SUBSETC);
+                //printer.code128(BarcodeType.CODE128,mSampleTextEditText.getText().toString(),
+                        //CODE128Subset.SUBSETC);
 
 
             }
@@ -947,6 +948,12 @@ public class MainActivity extends AppCompatActivity {
         mRadioButtonQR = findViewById(radioButtonId);
 
         Toast.makeText(this, "QR Correction Level: "+ mRadioButtonQR.getText(), Toast.LENGTH_SHORT).show();
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        printer = MyPrinter.getInstance(context);
     }
 }
 
