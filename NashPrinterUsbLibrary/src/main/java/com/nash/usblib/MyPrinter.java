@@ -528,11 +528,11 @@ public class MyPrinter{
     //Print Barcode (14.33) (With Parameter)
     public void GS_k(BarcodeType barcodeType, String barcodeData) {
         try {
-            if (mValidator.check_barcode(barcodeType, barcodeData)) {
+            if(barcodeType.equals(BarcodeType.CODE93)){
+                code93(barcodeType, barcodeData);
+            }
+            else if (mValidator.check_barcode(barcodeType, barcodeData)) {
                 //TODO: Change this later
-                if(barcodeType.equals(BarcodeType.CODE93)){
-                    code93(barcodeType, barcodeData);
-                }
                 transfer(myCommand.GS_k);
                 transfer(convertStringToByteArray(Integer.toString(barcodeType.getBarcode_type())));
                 transfer(convertStringToByteArray(String.valueOf(barcodeData.length())));

@@ -8,5 +8,6 @@
         <item>CODE39</item>
         <item>ITF</item>
         <item>CODABAR</item>
+        <item>CODE93</item>
     </string-array>
 </resources>
