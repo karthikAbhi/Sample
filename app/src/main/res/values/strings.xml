@@ -1,3 +1,12 @@
 <resources>
     <string name="app_name">PrinterSDK</string>
+    <string-array name="barcode_types">
+        <item>UPC-A</item>
+        <item>UPC-E</item>
+        <item>JAN13</item>
+        <item>JAN8</item>
+        <item>CODE39</item>
+        <item>ITF</item>
+        <item>CODABAR</item>
+    </string-array>
 </resources>

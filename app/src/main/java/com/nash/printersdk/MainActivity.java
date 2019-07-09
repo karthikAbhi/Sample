@@ -13,10 +13,13 @@ import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
+import android.widget.AdapterView;
+import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.RadioButton;
 import android.widget.RadioGroup;
+import android.widget.Spinner;
 import android.widget.Toast;
 
 //Nash - USB library package for Android
@@ -43,7 +46,6 @@ public class MainActivity extends AppCompatActivity {
      * UI - Button References
      */
     private Button mPrintButton;
-    private Button mPrintBarcodeButton;
     private Button mLFCommandButton;
     private Button mFFCommandButton;
     private Button mPMCommandButton;
@@ -76,6 +78,7 @@ public class MainActivity extends AppCompatActivity {
     private Button mSetBarcodeHeightCommandButton;
     private Button mSetBarcodeWidthCommandButton;
     private Button mSetNWAspectBarcode;
+    private Button mPrintBarcodeButton;
     private Button mSetPrintDensity;
     //private Button mSpecifyResponseParameterCommandButton;
     private Button mInformSysTimeOfHostCommandButton;
@@ -101,6 +104,9 @@ public class MainActivity extends AppCompatActivity {
     private RadioButton mRadioButtonFT;
     private RadioGroup mRadioGroupCT;
     private RadioButton mRadioButtonCT;
+
+    private Spinner mBarcodeSpinner;
+    private int mBarcodeTypeSelected;
 
     //Control Transfer
     private Button mControlTransfer;
@@ -139,6 +145,7 @@ public class MainActivity extends AppCompatActivity {
     private EditText mSetBarcodeHeightEditText;
     private EditText mSetBarcodeWidthEditText;
     private EditText mSetNWAspectBarcodeEditText;
+    private EditText mBarcodeDataEditText;
     private EditText mSetPrintDensityEditText;
     private EditText mSpecifyResponseParameterEditText;
     private EditText mInformSysTimeOfHostEditText;
@@ -210,6 +217,7 @@ public class MainActivity extends AppCompatActivity {
         mSetBarcodeHeightEditText = findViewById(R.id.setBarcodeHeightEditText);
         mSetBarcodeWidthEditText = findViewById(R.id.setBarcodeWidthEditText);
         mSetNWAspectBarcodeEditText = findViewById(R.id.setNWAspectOfBarcodeEditText);
+        mBarcodeDataEditText = findViewById(R.id.barcodeDataEditText);
         mSetPrintDensityEditText = findViewById(R.id.setPrintDensityEditText);
         mFFIPIXELSEditText = findViewById(R.id.ffinPixelsEditText);
         mUnderLineEditText = findViewById(R.id.underLineEditText);
@@ -233,8 +241,6 @@ public class MainActivity extends AppCompatActivity {
          * ***/
         //Print Text
         mPrintButton = findViewById(R.id.printButton);
-        //Print Barcode
-        mPrintBarcodeButton = findViewById(R.id.printBarcodeButton);
         //LF Command
         mLFCommandButton = findViewById(R.id.lfCommandButton);
         //FF Command
@@ -301,6 +307,8 @@ public class MainActivity extends AppCompatActivity {
         mSetBarcodeWidthCommandButton = findViewById(R.id.setBarcodeWidthButton);
         //Set N:W aspect of the barcode (14.32)
         mSetNWAspectBarcode = findViewById(R.id.setNWAspectOfBarcodeButton);
+        //Barcode Spinner
+        mBarcodeSpinner = findViewById(R.id.spinner_barcode_types);
         //Print Barcode (14.33)
         mPrintBarcodeButton = findViewById(R.id.printBarcodeButton);
         //Initialize Printer Command
@@ -609,16 +617,77 @@ public class MainActivity extends AppCompatActivity {
         });
         
         //Print Barcode (14.33)
+        ArrayAdapter<String> barcodeAdapter = new ArrayAdapter<String>(this,
+                android.R.layout.simple_list_item_1,
+                getResources().getStringArray(R.array.barcode_types));
+        barcodeAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        mBarcodeSpinner.setAdapter(barcodeAdapter);
+
+        mBarcodeSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+            @Override
+            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+                mBarcodeTypeSelected = position;
+            }
+
+            @Override
+            public void onNothingSelected(AdapterView<?> parent) {
+                mBarcodeTypeSelected = 0;
+            }
+        });
+
         mPrintBarcodeButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+
+                switch(mBarcodeTypeSelected){
+                    case 0: printer.GS_k(BarcodeType.UPC_A, mBarcodeDataEditText.getText().toString());
+                    break;
+                    case 1: printer.GS_k(BarcodeType.UPC_E, mBarcodeDataEditText.getText().toString());
+                    break;
+                    case 2: printer.GS_k(BarcodeType.JAN13, mBarcodeDataEditText.getText().toString());
+                    break;
+                    case 3: printer.GS_k(BarcodeType.JAN8, mBarcodeDataEditText.getText().toString());
+                    break;
+                    case 4: printer.GS_k(BarcodeType.CODE39, mBarcodeDataEditText.getText().toString());
+                    break;
+                    case 5: printer.GS_k(BarcodeType.ITF, mBarcodeDataEditText.getText().toString());
+                    break;
+                    case 6: printer.GS_k(BarcodeType.CODABAR, mBarcodeDataEditText.getText().toString());
+                    break;
+                    case 7: printer.GS_k(BarcodeType.CODE93, mBarcodeDataEditText.getText().toString());
+                    break;
+                    default: printer.GS_k(BarcodeType.UPC_A, mBarcodeDataEditText.getText().toString());
+                    break;
+                }
+
+                /*switch(mBarcodeTypeSelected){
+                    case 0: printer.GS_k(BarcodeType.UPC_A, "72527273070");
+                        break;
+                    case 1: printer.GS_k(BarcodeType.UPC_E, "01150000066");
+                        break;
+                    case 2: printer.GS_k(BarcodeType.JAN13, "122245678931");
+                        break;
+                    case 3: printer.GS_k(BarcodeType.JAN8, "1245678");
+                        break;
+                    case 4: printer.GS_k(BarcodeType.CODE39, "1AE% ");
+                        break;
+                    case 5: printer.GS_k(BarcodeType.ITF, "1456");
+                        break;
+                    case 6: printer.GS_k(BarcodeType.CODABAR, "A12345A");
+                        break;
+                    case 7: printer.GS_k(BarcodeType.CODE93, "A12345A");
+                        break;
+                    default: printer.GS_k(BarcodeType.UPC_A, "72527273070");
+                        break;
+                }*/
+
                 //printBarcode();
                 //printer.GS_k(BarcodeType.UPC_A, "72527273070");
                 //printer.GS_k(BarcodeType.UPC_E, "01150000066");
                 //printer.GS_k(BarcodeType.JAN13, "122245678931");
                 //printer.GS_k(BarcodeType.JAN8, "1245678");
                 //printer.GS_k(BarcodeType.CODE39, "1AE% ");
-                printer.GS_k(BarcodeType.ITF, "1456");
+                //printer.GS_k(BarcodeType.ITF, "1456");
                 //printer.GS_k(BarcodeType.CODABAR, "A12345A");
                 //printer.GS_k(BarcodeType.CODE93, "A12345A");
 
@@ -829,6 +898,14 @@ public class MainActivity extends AppCompatActivity {
         /*
         Change button to btn
          */
+    }
+
+    // Defining the Callback methods here
+    public void onItemSelected(AdapterView parent, View view, int pos,
+                               long id) {
+        Toast.makeText(getApplicationContext(),
+                mBarcodeSpinner.getItemAtPosition(pos).toString(), Toast.LENGTH_LONG)
+                .show();
     }
 
     /***

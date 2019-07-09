@@ -63,10 +63,7 @@ public class Validator {
         }
         else if(barcodeType.equals(BarcodeType.CODABAR)){
             if((userInput.length() > 0)) {
-                if (Pattern.matches("^[A-D]]", userInput) && Pattern.matches("[A-D]$]", userInput)) {
-                    Pattern.matches("[0-9+./:$\\-]*", userInput);
-                    return true;
-                }
+                return (Pattern.matches("^[A-D][0-9+./:$\\-]*[A-D]$", userInput));
             }
         }
         return false;

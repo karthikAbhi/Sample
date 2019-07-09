@@ -29,7 +29,9 @@ import com.askjeffreyliu.floydsteinbergdithering.Utils;
 import com.journeyapps.barcodescanner.BarcodeEncoder;
 import com.nash.nashprintercommands.Command;
 
+import java.io.BufferedOutputStream;
 import java.io.ByteArrayOutputStream;
+import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.security.InvalidParameterException;
 import java.util.HashMap;
@@ -527,6 +529,10 @@ public class MyPrinter{
     public void GS_k(BarcodeType barcodeType, String barcodeData) {
         try {
             if (mValidator.check_barcode(barcodeType, barcodeData)) {
+                //TODO: Change this later
+                if(barcodeType.equals(BarcodeType.CODE93)){
+                    code93(barcodeType, barcodeData);
+                }
                 transfer(myCommand.GS_k);
                 transfer(convertStringToByteArray(Integer.toString(barcodeType.getBarcode_type())));
                 transfer(convertStringToByteArray(String.valueOf(barcodeData.length())));
@@ -666,8 +672,15 @@ public class MyPrinter{
     //Turn white/black reverse print mode on/off (14.78)
     public void GS_B(String n){
         if(mValidator.check(n, 0,255)){
-            transfer(myCommand.GS_B);
-            transfer(convertStringToByteArray(n));
+            ByteArrayOutputStream out = new ByteArrayOutputStream();
+            try {
+                out.write(myCommand.GS_B);
+                out.write(convertStringToByteArray(n));
+                transfer(out.toByteArray());
+
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
         }
     }
     //Select cut mode and cut paper (14.79)
