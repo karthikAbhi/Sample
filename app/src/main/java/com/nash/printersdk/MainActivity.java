@@ -4,6 +4,7 @@ import android.content.BroadcastReceiver;
 import android.content.ClipData;
 import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.graphics.Bitmap;
 import android.net.Uri;
 import android.provider.MediaStore;
@@ -20,21 +21,20 @@ import android.widget.Toast;
 
 //Nash - USB library package for Android
 import com.nash.usblib.BarcodeType;
-import com.nash.usblib.CODE128Subset;
 import com.nash.usblib.CutCommand;
-import com.nash.usblib.ExtraBarcodeType;
 import com.nash.usblib.FunctionType;
-import com.nash.usblib.ImageMode;
 import com.nash.usblib.MyPrinter;
-import com.nash.usblib.PDF417ErrorCorrectionLevel;
-import com.nash.usblib.PDF417ErrorCorrectionMode;
-import com.nash.usblib.PDF417Options;
 import com.nash.usblib.QRErrCorrLvl;
 
 import java.io.IOException;
 import java.util.Calendar;
 
+import static android.hardware.usb.UsbManager.ACTION_USB_DEVICE_ATTACHED;
+import static android.hardware.usb.UsbManager.ACTION_USB_DEVICE_DETACHED;
+
 public class MainActivity extends AppCompatActivity {
+
+    private static final String TAG = "MainActivity";
 
     private MyPrinter printer;
     private Context context;
@@ -163,6 +163,16 @@ public class MainActivity extends AppCompatActivity {
         context = getApplicationContext();
 
         printer = MyPrinter.getInstance(context);
+
+        // Intent Filters
+
+        //TODO: Make printer specific static within MyPrinter
+        IntentFilter filterOnConnection = new IntentFilter(ACTION_USB_DEVICE_ATTACHED);
+        IntentFilter filterOffConnection = new IntentFilter(ACTION_USB_DEVICE_DETACHED);
+
+        // Register Broadcast Receivers
+        context.registerReceiver(mUsbReceiver1, filterOffConnection);
+        context.registerReceiver(mUsbReceiver2, filterOnConnection);
 
         /***
          *
@@ -950,10 +960,78 @@ public class MainActivity extends AppCompatActivity {
         Toast.makeText(this, "QR Correction Level: "+ mRadioButtonQR.getText(), Toast.LENGTH_SHORT).show();
     }
 
+    //Device Disconnected Receiver
+    BroadcastReceiver mUsbReceiver1 = new BroadcastReceiver() {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            String action = intent.getAction();
+            // TODO: Check for the custom VID and PID for the USB here
+            Toast.makeText(context.getApplicationContext(),"Device Disconnected!",
+                    Toast.LENGTH_SHORT).show();
+        }
+    };
+    //Device connected Receiver
+    BroadcastReceiver mUsbReceiver2 = new BroadcastReceiver() {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            Toast.makeText(context.getApplicationContext(),"Device Connected!",
+                    Toast.LENGTH_SHORT).show();
+
+            if(printer == null){
+                printer = MyPrinter.getInstance(context);
+            }
+            else{
+                printer.establishUSBConnection(context);
+            }
+        }
+    };
+
     @Override
     protected void onResume() {
         super.onResume();
-        printer = MyPrinter.getInstance(context);
+        if(printer == null){
+            printer = MyPrinter.getInstance(context);
+        }
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        Log.i(TAG, "In onPause()");
+        Log.i(TAG, "Going to onStop()");
+    }
+
+    @Override
+    protected void onStop() {
+        super.onStop();
+        Log.i(TAG, "In onStop()");
+        Log.i(TAG, "Going to onDestroy()");
+    }
+
+    @Override
+    protected void onRestart() {
+        super.onRestart();
+        Log.i(TAG, "In onRestart()");
+        Log.i(TAG, "Going to onStart()");
+
+    }
+
+    @Override
+    protected void onStart() {
+        super.onStart();
+        Log.i(TAG, "In onStart()");
+        Log.i(TAG, "Going to onResume()");
+    }
+
+    @Override
+    protected void onDestroy() {
+        if(mUsbReceiver1 != null || mUsbReceiver2 != null){
+            context.unregisterReceiver(mUsbReceiver1);
+            context.unregisterReceiver(mUsbReceiver2);
+        }
+        super.onDestroy();
+        Log.i(TAG, "In onDestroy()");
+        Log.i(TAG, "Going to Activity Shutdown");
     }
 }
 

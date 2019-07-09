@@ -35,36 +35,36 @@ import java.security.InvalidParameterException;
 import java.util.HashMap;
 import java.util.Iterator;
 
-import static android.hardware.usb.UsbManager.ACTION_USB_DEVICE_ATTACHED;
-import static android.hardware.usb.UsbManager.ACTION_USB_DEVICE_DETACHED;
-
-public class MyPrinter {
+public class MyPrinter{
 
     private static MyPrinter myPrinter; // Singleton Design Pattern
 
     private static final String TAG = "MyPrinter";
-    //Nash Printer Command Reference
-    Command myCommand = new Command();
-    //Command Validator
-    Validator mValidator = new Validator();
-    //Cut Command Enum
-    CutCommand mCutCommand = CutCommand.FULLCUT;
 
-    String ACTION_USB_PERMISSION = "com.android.example.USB_PERMISSION";
+    //Nash Printer Command Reference
+    private Command myCommand = new Command();
+    //Command Validator
+    private Validator mValidator = new Validator();
+    //Cut Command Enum
+    private CutCommand mCutCommand = CutCommand.FULLCUT;
 
     //Android Components
-    UsbManager mUsbManager;
-    UsbDevice mDevice;
-    UsbInterface mInterface;
-    UsbEndpoint mEndpoint;
-    private static UsbDeviceConnection mConnection;
-    String mUsbDevice = "";
-    PendingIntent mPermissionIntent;
-    Context mContext;
+    private static UsbManager mUsbManager;
+    private static UsbDevice mDevice;
+    private UsbInterface mInterface;
+    private UsbEndpoint mEndpoint;
+    private UsbDeviceConnection mConnection;
+    private static String mUsbDevice = "";
+    private static PendingIntent mPermissionIntent;
+    private Context mContext;
     private int nCurrentSubset;
 
+    IntentFilter mFilter = new IntentFilter(MyPrinter.ACTION_USB_PERMISSION);
+
+    public final static String ACTION_USB_PERMISSION = "com.android.example.USB_PERMISSION";
+
     // Singleton Design Pattern continued...
-    public static MyPrinter getInstance(Context context){
+    public static synchronized MyPrinter getInstance(Context context){
         if(myPrinter == null){
             myPrinter = new MyPrinter(context);
         }
@@ -72,11 +72,20 @@ public class MyPrinter {
     }
 
     // Singleton Design Pattern continued...
-    //Constructor to find and initialise the printer connection
+    // Constructor to find and initialise the printer connection
     private MyPrinter(Context context) {
 
         mContext = context;
         mUsbManager = (UsbManager) context.getSystemService(Context.USB_SERVICE);
+
+        context.registerReceiver(mUsbReceiver, mFilter);
+        establishUSBConnection(context);
+
+    }
+
+    public void establishUSBConnection(Context context){
+
+        context.registerReceiver(mUsbReceiver, mFilter);
 
         //Contains all the UsbDevices list in a Hashmap Datastructure
         HashMap<String, UsbDevice> deviceList = mUsbManager.getDeviceList();
@@ -87,25 +96,23 @@ public class MyPrinter {
             mDevice = deviceIterator.next();
             if (mDevice.getVendorId() == 12232) {
                 //Device Found
-                Toast.makeText(context.getApplicationContext(), "Printer Connected!" + mUsbDevice, Toast.LENGTH_SHORT).show();
+                Toast.makeText(context.getApplicationContext(),
+                        "Printer Connected!" + mUsbDevice,
+                        Toast.LENGTH_SHORT).show();
 
-                mPermissionIntent = PendingIntent.getBroadcast(context, 0, new Intent(ACTION_USB_PERMISSION), 0);
+                mPermissionIntent = PendingIntent.getBroadcast(context,
+                        0,
+                        new Intent(ACTION_USB_PERMISSION),
+                        0);
 
-                //Intent-Filter for recognising USB Device
-                IntentFilter filter = new IntentFilter(ACTION_USB_PERMISSION);
-                IntentFilter filterOnConnection = new IntentFilter(ACTION_USB_DEVICE_ATTACHED);
-                IntentFilter filterOffConnection = new IntentFilter(ACTION_USB_DEVICE_DETACHED);
-
-                //Register Broadcast Receiver
-                context.registerReceiver(mUsbReceiver, filter);
-                context.registerReceiver(mUsbReceiver2, filterOnConnection);
-                context.registerReceiver(mUsbReceiver1, filterOffConnection);
                 mUsbManager.requestPermission(mDevice, mPermissionIntent);
                 break;
 
             }
             else {
-                Toast.makeText(context.getApplicationContext(), "Not a Printer", Toast.LENGTH_SHORT).show();
+                Toast.makeText(context.getApplicationContext(),
+                        "Not a Printer",
+                        Toast.LENGTH_SHORT).show();
             }
         }
     }
@@ -114,67 +121,47 @@ public class MyPrinter {
         @Override
         public void onReceive(Context context, Intent intent) {
 
-        Toast.makeText(context.getApplicationContext(), "Receiver called", Toast.LENGTH_SHORT).show();
-        String action = intent.getAction();
-        if (ACTION_USB_PERMISSION.equals(action)) {
-            synchronized (this) {
-                UsbDevice device = intent.getParcelableExtra(UsbManager.EXTRA_DEVICE);
+            Toast.makeText(context.getApplicationContext(), "Receiver called", Toast.LENGTH_SHORT).show();
+            String action = intent.getAction();
+            if (MyPrinter.ACTION_USB_PERMISSION.equals(action)) {
+                synchronized (this) {
+                    UsbDevice device = intent.getParcelableExtra(UsbManager.EXTRA_DEVICE);
 
-                Toast.makeText(context.getApplicationContext(), "Receiver called : "+device.getDeviceName() + " "+device.getManufacturerName(), Toast.LENGTH_SHORT).show();
+                    Toast.makeText(context.getApplicationContext(), "Receiver called : "+device.getDeviceName() + " "+device.getManufacturerName(), Toast.LENGTH_SHORT).show();
 
-                if (intent.getBooleanExtra(UsbManager.EXTRA_PERMISSION_GRANTED, false)) {
-                    if (device != null) {
-                        //call method to set up device communication
-                        mInterface = device.getInterface(0);
-                        mEndpoint = mInterface.getEndpoint(1);// 0 IN and  1 OUT to printer.
-                        mConnection = mUsbManager.openDevice(device);
+                    if (intent.getBooleanExtra(UsbManager.EXTRA_PERMISSION_GRANTED, false)) {
+                        if (device != null) {
+                            //call method to set up device communication
+                            mInterface = device.getInterface(0);
+                            mEndpoint = mInterface.getEndpoint(1);// 0 IN and  1 OUT to printer.
+                            mConnection = mUsbManager.openDevice(device);
 
-                        for (int i = 0; i < mInterface.getEndpointCount(); i++) {
-                            Log.i("Printer", "EP: "
-                                    + String.format("0x%02X", mInterface.getEndpoint(i)
-                                    .getAddress()));
+                            for (int i = 0; i < mInterface.getEndpointCount(); i++) {
+                                Log.i("Printer", "EP: "
+                                        + String.format("0x%02X", mInterface.getEndpoint(i)
+                                        .getAddress()));
 
-                            if (mInterface.getEndpoint(i).getType() == UsbConstants.USB_ENDPOINT_XFER_BULK) {
-                                Log.i("Printer", "Bulk Endpoint");
-                                if (mInterface.getEndpoint(i).getDirection() == UsbConstants.USB_DIR_IN) {
-                                    //epIN = mInterface.getEndpoint(i);
-                                    Log.i("Printer", "input stream found");
-                                }else {
-                                    mEndpoint = mInterface.getEndpoint(i);
-                                    Log.i("Printer", "outstream found");
+                                if (mInterface.getEndpoint(i).getType() == UsbConstants.USB_ENDPOINT_XFER_BULK) {
+                                    Log.i("Printer", "Bulk Endpoint");
+                                    if (mInterface.getEndpoint(i).getDirection() == UsbConstants.USB_DIR_IN) {
+                                        //epIN = mInterface.getEndpoint(i);
+                                        Log.i("Printer", "input stream found");
+                                    }else {
+                                        mEndpoint = mInterface.getEndpoint(i);
+                                        Log.i("Printer", "outstream found");
+                                    }
+                                } else {
+                                    Log.i("Printer", "Not Bulk");
                                 }
-                            } else {
-                                Log.i("Printer", "Not Bulk");
                             }
-                        }
 
+                        }
+                    } else {
+                        Toast.makeText(context, "PERMISSION DENIED FOR THIS DEVICE",
+                                Toast.LENGTH_SHORT).show();
                     }
-                } else {
-                    Toast.makeText(context, "PERMISSION DENIED FOR THIS DEVICE",
-                            Toast.LENGTH_SHORT).show();
                 }
             }
-        }
-        }
-    };
-
-    BroadcastReceiver mUsbReceiver1 = new BroadcastReceiver() {
-        @Override
-        public void onReceive(Context context, Intent intent) {
-            String action = intent.getAction();
-            // TODO: Check for the custom VID and PID for the USB here
-            Toast.makeText(context.getApplicationContext(),"Device Disconnected!",
-                    Toast.LENGTH_SHORT).show();
-            mConnection.close();
-        }
-    };
-
-    BroadcastReceiver mUsbReceiver2 = new BroadcastReceiver() {
-        @Override
-        public void onReceive(Context context, Intent intent) {
-            Toast.makeText(context.getApplicationContext(),"Device Connected!",
-                    Toast.LENGTH_SHORT).show();
-            MyPrinter.getInstance(context);
         }
     };
 
