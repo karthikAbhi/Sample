@@ -428,7 +428,7 @@ public class MainActivity extends AppCompatActivity {
             }
         });*/
         //TODO - Need to talk to Reddy sir
-        mSpecifyDownldCharCommandButton.setOnClickListener(new View.OnClickListener() {
+        /*mSpecifyDownldCharCommandButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 //Will be implemented later
@@ -440,7 +440,7 @@ public class MainActivity extends AppCompatActivity {
             public void onClick(View v) {
                 printer.ESC_SDC(mSetOrUnsetDCSEditText.getText().toString());
             }
-        });
+        });*/
 
 
         mPMCommandButton.setOnClickListener(new View.OnClickListener() {
@@ -821,13 +821,13 @@ public class MainActivity extends AppCompatActivity {
         });
 
 
-        //Print downloaded bit image (14.77)
+        /*//Print downloaded bit image (14.77)
         mPDBICommandButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 printer.GS_FS(mPDBIEditText.getText().toString());
             }
-        });
+        });*/
 
         //Turn white/black reverse print mode on/off (14.78)
         mTurnWBRPOnOffCommandButton.setOnClickListener(new View.OnClickListener() {
