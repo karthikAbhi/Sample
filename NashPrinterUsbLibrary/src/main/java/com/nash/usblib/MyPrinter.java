@@ -609,15 +609,21 @@ public class MyPrinter{
     }
     //Select justification (14.74)
     public void ESC_a(String n){
-        if(mValidator.check(n, 0,2)){
-            transfer(myCommand.ESC_a);
-            transfer(convertStringToByteArray(n));
+        if(mValidator.check(n, 0,2)) {
+            try {
+                ByteArrayOutputStream out = new ByteArrayOutputStream();
+                out.write(myCommand.ESC_a);
+                out.write(convertStringToByteArray(n));
+                transfer(out.toByteArray());
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
         }
     }
     //Set up and print the symbol (14.75) PART - 1
     public void pdf417() {
         transfer(myCommand.GS_C_k);
-        //TODO: Need to implement in firmware
+        //TODO: Need to implement later
     }
     //Set up and print the symbol (14.75) PART - 2
     public void QrCode(String size, QRErrCorrLvl qrErrCorrLvl, String userData) {
@@ -843,7 +849,7 @@ public class MyPrinter{
     /**
      * TODO - Example Barcode Method from zxing library
      */
-    public void printAdditionalBarcode(ExtraBarcodeType extraBarcodeType, String width, String height, String userData,
+    private void printAdditionalBarcode(ExtraBarcodeType extraBarcodeType, String width, String height, String userData,
                              ImageMode imageMode){
         //TODO: Width and Height parameters needs to be constrainted.
         MultiFormatWriter mMultiFormatWriter = new MultiFormatWriter();
@@ -871,7 +877,7 @@ public class MyPrinter{
         }
     }
 
-    public void  printPDF417(String No_of_Columns,
+    private void printPDF417(String No_of_Columns,
                              String No_of_Rows,
                              PDF417ErrorCorrectionMode mode,
                              PDF417ErrorCorrectionLevel level,
@@ -931,7 +937,9 @@ public class MyPrinter{
             e.printStackTrace();
         }
     }
-    public void code93(BarcodeType barcodeType, String userData){
+
+    //TODO: Validation Pending
+    private void code93(BarcodeType barcodeType, String userData){
         try{
             ByteArrayOutputStream out = new ByteArrayOutputStream();
 
@@ -969,7 +977,7 @@ public class MyPrinter{
             e.printStackTrace();
         }
     }
-
+    //TODO: Needs more clarity
     public void code128(BarcodeType barcodeType, String userData, CODE128Subset subset) {
 
         try {

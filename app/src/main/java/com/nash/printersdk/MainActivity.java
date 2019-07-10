@@ -62,7 +62,7 @@ public class MainActivity extends AppCompatActivity {
     private Button mSGRSCCommandButton;
     private Button mSPPMCommandButton;
     private Button mSelectFontCommandButton;
-    private Button mSelCharCodeTableCommandButton;
+    //private Button mSelCharCodeTableCommandButton;
     private Button mSpecifyDownldCharCommandButton;
     private Button mSetOrUnsetDCSCommandButton;
     private Button mSetLeftMarginCommandButton;
@@ -193,7 +193,7 @@ public class MainActivity extends AppCompatActivity {
         mSGRSCEditText = findViewById(R.id.sgrscEditText);
         mSPPMEditText = findViewById(R.id.sppmEditText);
         mSelectFontEditText =findViewById(R.id.selFontEditText);
-        mSetOrUnsetDCSEditText = findViewById(R.id.setOrUnsetDCSetEditText);
+        //mSetOrUnsetDCSEditText = findViewById(R.id.setOrUnsetDCSetEditText);
         mSetLeftMarginEditText = findViewById(R.id.setLeftMarginEditText);
         mSetWidthOfPrintAreaEditText = findViewById(R.id.setWidthOfPrintAreaEditText);
         mSPAPMxaxisEditText = findViewById(R.id.spapmxaxisEditText);
@@ -226,7 +226,7 @@ public class MainActivity extends AppCompatActivity {
         mSJEditText = findViewById(R.id.selectJustificationEditText);
         mQRSizeEditText = findViewById(R.id.qrSizeEditText);
         mQRUserDataEditText = findViewById(R.id.qrUserDataEditText);
-        mPDBIEditText = findViewById(R.id.printDownldBitImgEditText);
+        //mPDBIEditText = findViewById(R.id.printDownldBitImgEditText);
         mTurnWBRPOnOffEditText = findViewById(R.id.turnBlackWhiteRevPrintModeOnOffEditText);
         mSCMCPEditText = findViewById(R.id.selectCutModeCutPaperEditText);
 
@@ -260,11 +260,11 @@ public class MainActivity extends AppCompatActivity {
         //Select the font Command (14.09)
         mSelectFontCommandButton = findViewById(R.id.selFontButton);
         //Select character code table Command (14.10)
-        mSelCharCodeTableCommandButton = findViewById(R.id.selCharCodeTableButton);
+        //mSelCharCodeTableCommandButton = findViewById(R.id.selCharCodeTableButton);
         //Specify download character Command (14.11)
-        mSpecifyDownldCharCommandButton = findViewById(R.id.specifyDownldCharButton);
+        //mSpecifyDownldCharCommandButton = findViewById(R.id.specifyDownldCharButton);
         //Set or unset download character set Command (14.12)
-        mSetOrUnsetDCSCommandButton = findViewById(R.id.setOrUnsetDCSetButton);
+        //mSetOrUnsetDCSCommandButton = findViewById(R.id.setOrUnsetDCSetButton);
         //Page Mode Command (14.13)
         mPMCommandButton = findViewById(R.id.pageModeButton);
         //Standard Mode Command (14.14)
@@ -338,7 +338,7 @@ public class MainActivity extends AppCompatActivity {
         mRadioButtonQR = findViewById(R.id.qr_L);
         mQRCodeCommandButton = findViewById(R.id.qrCodeButton);
         //Print downloaded bit image (14.77)
-        mPDBICommandButton = findViewById(R.id.printDownldBitImgButton);
+        //mPDBICommandButton = findViewById(R.id.printDownldBitImgButton);
         //Turn white/black reverse print mode on/off (14.78)
         mTurnWBRPOnOffCommandButton = findViewById(R.id.turnBlackWhiteRevPrintModeOnOffButton);
         //Select cut mode and cut paper (14.79)
@@ -419,14 +419,14 @@ public class MainActivity extends AppCompatActivity {
             }
         });
         //TODO - Praveen need to provide more information
-        mSelCharCodeTableCommandButton.setOnClickListener(new View.OnClickListener() {
+        /*mSelCharCodeTableCommandButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 byte[] a = new byte[1];
                 a[0] = (byte)0;//Default - 0
                 printer.ESC_t(a);
             }
-        });
+        });*/
         //TODO - Need to talk to Reddy sir
         mSpecifyDownldCharCommandButton.setOnClickListener(new View.OnClickListener() {
             @Override

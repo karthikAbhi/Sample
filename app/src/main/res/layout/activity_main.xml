@@ -154,7 +154,7 @@
             android:contentDescription="Select the font"
             android:text="Select Font" />
 
-        <Button
+        <!--Button
             android:id="@+id/selCharCodeTableButton"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
@@ -188,7 +188,7 @@
             android:layout_marginTop="8dp"
             android:layout_marginEnd="8dp"
             android:contentDescription="Set or unset download set"
-            android:text="Set/Unset Download Char Set" />
+            android:text="Set/Unset Download Char Set" /-->
 
         <Button
             android:id="@+id/pageModeButton"
@@ -823,7 +823,7 @@
                 android:layout_weight="4"/>
         </LinearLayout>
 
-        <EditText
+        <!--EditText
             android:id="@+id/printDownldBitImgEditText"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
@@ -837,7 +837,7 @@
             android:layout_height="wrap_content"
             android:layout_marginStart="8dp"
             android:layout_marginEnd="8dp"
-            android:text="Print Downloaded Bit Image " />
+            android:text="Print Downloaded Bit Image " /-->
 
         <EditText
             android:id="@+id/turnBlackWhiteRevPrintModeOnOffEditText"
