@@ -27,6 +27,9 @@ import com.nash.usblib.BarcodeType;
 import com.nash.usblib.CutCommand;
 import com.nash.usblib.FunctionType;
 import com.nash.usblib.MyPrinter;
+import com.nash.usblib.PDF417ErrorCorrectionLevel;
+import com.nash.usblib.PDF417ErrorCorrectionMode;
+import com.nash.usblib.PDF417Options;
 import com.nash.usblib.QRErrCorrLvl;
 
 import java.io.IOException;
@@ -96,6 +99,7 @@ public class MainActivity extends AppCompatActivity {
     private Button mPDBICommandButton;
     private Button mTurnWBRPOnOffCommandButton;
     private Button mSCMCPCommandButton;
+    private Button mPDF417CommandButton;
 
     private RadioGroup mRadioGroupQR;
     private RadioButton mRadioButtonQR;
@@ -346,7 +350,8 @@ public class MainActivity extends AppCompatActivity {
         mRadioGroupCT = findViewById(R.id.radioGroup_CutType);
         mRadioButtonFT = findViewById(R.id.FT_a);
         mRadioButtonCT = findViewById(R.id.full_cut);
-        mSCMCPCommandButton =findViewById(R.id.selectCutModeCutPaperButton);
+        mSCMCPCommandButton = findViewById(R.id.selectCutModeCutPaperButton);
+        mPDF417CommandButton = findViewById(R.id.pdf417Button);
 
         //Control Transfer
         mControlTransfer = findViewById(R.id.controlTransferButton);
@@ -881,6 +886,19 @@ public class MainActivity extends AppCompatActivity {
                         //CODE128Subset.SUBSETC);
 
 
+            }
+        });
+
+        //PDF417 Command
+        mPDF417CommandButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                printer.printPDF417("3",
+                        "10",
+                        PDF417ErrorCorrectionMode.LEVEL,
+                        PDF417ErrorCorrectionLevel.LEVEL0,
+                        PDF417Options.STANDARD,
+                        "Nash Industries (I) Pvt. Ltd.");
             }
         });
 

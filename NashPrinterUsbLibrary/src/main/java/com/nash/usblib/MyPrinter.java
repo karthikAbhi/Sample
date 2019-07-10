@@ -877,7 +877,7 @@ public class MyPrinter{
         }
     }
 
-    private void printPDF417(String No_of_Columns,
+    public void printPDF417(String No_of_Columns,
                              String No_of_Rows,
                              PDF417ErrorCorrectionMode mode,
                              PDF417ErrorCorrectionLevel level,
